@@ -1,0 +1,38 @@
+# Flutter
+ptodolist_front/.dart_tool/
+ptodolist_front/.packages
+ptodolist_front/build/
+ptodolist_front/.flutter-plugins
+ptodolist_front/.flutter-plugins-dependencies
+ptodolist_front/.pub-cache/
+ptodolist_front/.pub/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*.Zone.Identifier
+
+# Dependencies
+node_modules/
+
+# Hive
+*.hive
+*.lock
+
+# Coverage
+coverage/
+
+# Generated
+*.g.dart
+*.freezed.dart
+
+# Secrets
+.env
+*.keystore
