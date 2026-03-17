@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:ptodolist/features/home/views/home_view.dart';
 import 'package:ptodolist/features/stats/views/stats_view.dart';
 import 'package:ptodolist/features/settings/views/settings_view.dart';
+import 'package:ptodolist/features/category/views/category_list_view.dart';
+import 'package:ptodolist/features/category/repos/category_repo.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -36,6 +38,14 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/settings',
               builder: (context, state) => const SettingsView(),
+              routes: [
+                GoRoute(
+                  path: 'categories',
+                  builder: (context, state) => CategoryListView(
+                    repository: CategoryRepository(useMock: const String.fromEnvironment('USE_MOCK') == 'true'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -9,11 +10,16 @@ class SettingsView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('설정'),
       ),
-      body: const Center(
-        child: Text(
-          '설정',
-          style: TextStyle(fontSize: 18),
-        ),
+      body: ListView(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.category_outlined),
+            title: const Text('카테고리 관리'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go('/settings/categories'),
+          ),
+          const Divider(height: 1),
+        ],
       ),
     );
   }
