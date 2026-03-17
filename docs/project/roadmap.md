@@ -21,7 +21,7 @@
 | F1 | 카테고리 관리 | F0 | `[status: completed]` |
 | F2 | 루틴 관리 | F1 | `[status: completed]` |
 | F3 | 추가 할 일 | F1 | `[status: completed]` |
-| F4 | 오늘 화면 | F2, F3 | `[status: todo]` |
+| F4 | 오늘 화면 | F2, F3 | `[status: completed]` |
 | F5 | 일일 기록 & 자정 리셋 | F4 | `[status: todo]` |
 
 **마일스톤**: 앱 실행 → 루틴 추가 → 체크 → 자정 리셋 → 다음 날 새로 시작

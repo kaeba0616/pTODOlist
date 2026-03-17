@@ -6,6 +6,10 @@ import 'package:ptodolist/features/settings/views/settings_view.dart';
 import 'package:ptodolist/features/category/views/category_list_view.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
 import 'package:ptodolist/features/category/models/category.dart';
+import 'package:ptodolist/features/routine/models/routine.dart';
+import 'package:ptodolist/features/routine/repos/routine_repo.dart';
+import 'package:ptodolist/features/task/models/additional_task.dart';
+import 'package:ptodolist/features/task/repos/task_repo.dart';
 import 'package:hive/hive.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -23,7 +27,23 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/',
-              builder: (context, state) => const HomeView(),
+              builder: (context, state) {
+                const useMock = String.fromEnvironment('USE_MOCK') == 'true';
+                final catRepo = useMock
+                    ? CategoryRepository(useMock: true)
+                    : CategoryRepository(box: Hive.box<Category>('categories'));
+                final routineRepo = useMock
+                    ? RoutineRepository(useMock: true)
+                    : RoutineRepository(box: Hive.box<Routine>('routines'));
+                final taskRepo = useMock
+                    ? TaskRepository(useMock: true)
+                    : TaskRepository(box: Hive.box<AdditionalTask>('additionalTasks'));
+                return HomeView(
+                  categoryRepo: catRepo,
+                  routineRepo: routineRepo,
+                  taskRepo: taskRepo,
+                );
+              },
             ),
           ],
         ),
