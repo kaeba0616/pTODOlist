@@ -2,7 +2,7 @@
 
 **Feature ID**: F7
 **예상 기간**: 3일
-**상태**: `[status: todo]`
+**상태**: `[status: completed]`
 **의존성**: F5
 
 ---

@@ -5,7 +5,7 @@
 | Phase | 이름 | 목표 | Features | 상태 |
 |---|---|---|---|---|
 | Phase 1 | Core Foundation | 루틴+할일 관리, 자정 리셋 | F0~F5 | `[status: done]` |
-| Phase 2 | Engagement | 통계, 스마트 알림 | F6~F7 | `[status: in-progress]` |
+| Phase 2 | Engagement | 통계, 스마트 알림 | F6~F7 | `[status: done]` |
 | Phase 3 | Polish | 설정, 데이터 관리, 테마 | F8 | `[status: planned]` |
 
 ---
@@ -36,7 +36,7 @@
 | ID | 기능 | 의존성 | 상태 |
 |---|---|---|---|
 | F6 | 달성률 통계 | F5 | `[status: completed]` |
-| F7 | 11시 스마트 알림 | F5 | `[status: todo]` |
+| F7 | 11시 스마트 알림 | F5 | `[status: completed]` |
 
 **마일스톤**: 통계 차트 확인 + 11시 미완료 알림 수신
 
