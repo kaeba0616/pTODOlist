@@ -18,7 +18,7 @@
 | ID | 기능 | 의존성 | 상태 |
 |---|---|---|---|
 | F0 | 앱 셸 & 네비게이션 | - | `[status: completed]` |
-| F1 | 카테고리 관리 | F0 | `[status: todo]` |
+| F1 | 카테고리 관리 | F0 | `[status: completed]` |
 | F2 | 루틴 관리 | F1 | `[status: todo]` |
 | F3 | 추가 할 일 | F1 | `[status: todo]` |
 | F4 | 오늘 화면 | F2, F3 | `[status: todo]` |

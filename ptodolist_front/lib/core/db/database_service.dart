@@ -1,4 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:ptodolist/features/category/models/category.dart';
+import 'package:ptodolist/features/category/models/category_adapter.dart';
+import 'package:ptodolist/features/category/mocks/category_mock.dart';
 
 class DatabaseService {
   DatabaseService._();
@@ -6,12 +9,32 @@ class DatabaseService {
   static Future<void> init() async {
     await Hive.initFlutter();
 
-    // AppSettings 박스 열기
+    // TypeAdapters 등록
+    Hive.registerAdapter(CategoryAdapter());
+
+    // 박스 열기
     await Hive.openBox('appSettings');
+    await Hive.openBox<Category>('categories');
+
+    // 첫 실행 시 기본 카테고리 시드
+    await _seedDefaultCategories();
+  }
+
+  static Future<void> _seedDefaultCategories() async {
+    final box = Hive.box<Category>('categories');
+    if (box.isEmpty) {
+      for (final category in defaultCategories) {
+        await box.put(category.id, category);
+      }
+    }
   }
 
   static Box getAppSettingsBox() {
     return Hive.box('appSettings');
+  }
+
+  static Box<Category> getCategoriesBox() {
+    return Hive.box<Category>('categories');
   }
 
   static Future<void> close() async {

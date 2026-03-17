@@ -5,6 +5,8 @@ import 'package:ptodolist/features/stats/views/stats_view.dart';
 import 'package:ptodolist/features/settings/views/settings_view.dart';
 import 'package:ptodolist/features/category/views/category_list_view.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
+import 'package:ptodolist/features/category/models/category.dart';
+import 'package:hive/hive.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -41,9 +43,13 @@ final appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'categories',
-                  builder: (context, state) => CategoryListView(
-                    repository: CategoryRepository(useMock: const String.fromEnvironment('USE_MOCK') == 'true'),
-                  ),
+                  builder: (context, state) {
+                    const useMock = String.fromEnvironment('USE_MOCK') == 'true';
+                    final repo = useMock
+                        ? CategoryRepository(useMock: true)
+                        : CategoryRepository(box: Hive.box<Category>('categories'));
+                    return CategoryListView(repository: repo);
+                  },
                 ),
               ],
             ),

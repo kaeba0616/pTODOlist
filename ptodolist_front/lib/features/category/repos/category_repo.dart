@@ -5,17 +5,16 @@ import 'package:uuid/uuid.dart';
 
 class CategoryRepository {
   final bool useMock;
-  final Box? _box;
+  final Box<Category>? _box;
   List<Category> _mockData = List.from(defaultCategories);
 
-  CategoryRepository({this.useMock = false, Box? box}) : _box = box;
+  CategoryRepository({this.useMock = false, Box<Category>? box}) : _box = box;
 
   static const _uuid = Uuid();
 
   List<Category> getAll() {
     if (useMock) return List.unmodifiable(_mockData);
-    // Real implementation will be in Step 4
-    return [];
+    return _box!.values.toList();
   }
 
   Category? getById(String id) {
@@ -26,7 +25,7 @@ class CategoryRepository {
         return null;
       }
     }
-    return null;
+    return _box!.get(id);
   }
 
   String add({required String name, required String color}) {
@@ -34,6 +33,8 @@ class CategoryRepository {
     final category = Category(id: id, name: name, color: color);
     if (useMock) {
       _mockData.add(category);
+    } else {
+      _box!.put(id, category);
     }
     return id;
   }
@@ -44,18 +45,21 @@ class CategoryRepository {
       if (index != -1) {
         _mockData[index] = category;
       }
+    } else {
+      _box!.put(category.id, category);
     }
   }
 
   bool delete(String id) {
-    // "기타" 카테고리는 삭제 불가
+    final category = getById(id);
+    if (category == null) return false;
+    if (category.name == '기타') return false;
+
     if (useMock) {
-      final category = getById(id);
-      if (category == null) return false;
-      if (category.name == '기타') return false;
       _mockData.removeWhere((c) => c.id == id);
-      return true;
+    } else {
+      _box!.delete(id);
     }
-    return false;
+    return true;
   }
 }
