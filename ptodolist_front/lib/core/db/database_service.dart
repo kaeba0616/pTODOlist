@@ -2,6 +2,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/category/models/category_adapter.dart';
 import 'package:ptodolist/features/category/mocks/category_mock.dart';
+import 'package:ptodolist/features/routine/models/routine.dart';
+import 'package:ptodolist/features/routine/models/routine_adapter.dart';
 
 class DatabaseService {
   DatabaseService._();
@@ -11,10 +13,12 @@ class DatabaseService {
 
     // TypeAdapters 등록
     Hive.registerAdapter(CategoryAdapter());
+    Hive.registerAdapter(RoutineAdapter());
 
     // 박스 열기
     await Hive.openBox('appSettings');
     await Hive.openBox<Category>('categories');
+    await Hive.openBox<Routine>('routines');
 
     // 첫 실행 시 기본 카테고리 시드
     await _seedDefaultCategories();
