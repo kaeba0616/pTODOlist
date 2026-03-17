@@ -6,6 +6,8 @@ import 'package:ptodolist/features/routine/models/routine.dart';
 import 'package:ptodolist/features/routine/models/routine_adapter.dart';
 import 'package:ptodolist/features/task/models/additional_task.dart';
 import 'package:ptodolist/features/task/models/additional_task_adapter.dart';
+import 'package:ptodolist/features/home/models/daily_record.dart';
+import 'package:ptodolist/features/home/models/daily_record_adapter.dart';
 
 class DatabaseService {
   DatabaseService._();
@@ -17,12 +19,14 @@ class DatabaseService {
     Hive.registerAdapter(CategoryAdapter());
     Hive.registerAdapter(RoutineAdapter());
     Hive.registerAdapter(AdditionalTaskAdapter());
+    Hive.registerAdapter(DailyRecordAdapter());
 
     // 박스 열기
     await Hive.openBox('appSettings');
     await Hive.openBox<Category>('categories');
     await Hive.openBox<Routine>('routines');
     await Hive.openBox<AdditionalTask>('additionalTasks');
+    await Hive.openBox<DailyRecord>('dailyRecords');
 
     // 첫 실행 시 기본 카테고리 시드
     await _seedDefaultCategories();

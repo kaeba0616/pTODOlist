@@ -10,6 +10,8 @@ import 'package:ptodolist/features/routine/models/routine.dart';
 import 'package:ptodolist/features/routine/repos/routine_repo.dart';
 import 'package:ptodolist/features/task/models/additional_task.dart';
 import 'package:ptodolist/features/task/repos/task_repo.dart';
+import 'package:ptodolist/features/home/models/daily_record.dart';
+import 'package:ptodolist/features/home/repos/daily_record_repo.dart';
 import 'package:hive/hive.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -38,10 +40,14 @@ final appRouter = GoRouter(
                 final taskRepo = useMock
                     ? TaskRepository(useMock: true)
                     : TaskRepository(box: Hive.box<AdditionalTask>('additionalTasks'));
+                final dailyRecordRepo = useMock
+                    ? DailyRecordRepository(useMock: true)
+                    : DailyRecordRepository(box: Hive.box<DailyRecord>('dailyRecords'));
                 return HomeView(
                   categoryRepo: catRepo,
                   routineRepo: routineRepo,
                   taskRepo: taskRepo,
+                  dailyRecordRepo: dailyRecordRepo,
                 );
               },
             ),

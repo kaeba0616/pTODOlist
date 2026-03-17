@@ -18,7 +18,7 @@
 | F2 | 루틴 관리 | `[status: completed]` | `docs/project/features/f2-routine.md` |
 | F3 | 추가 할 일 | `[status: completed]` | `docs/project/features/f3-task.md` |
 | F4 | 오늘 화면 | `[status: completed]` | `docs/project/features/f4-home.md` |
-| F5 | 일일 기록 & 자정 리셋 | `[status: todo]` | `docs/project/features/f5-daily-record.md` |
+| F5 | 일일 기록 & 자정 리셋 | `[status: completed]` | `docs/project/features/f5-daily-record.md` |
 
 ---
 

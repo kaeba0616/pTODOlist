@@ -9,6 +9,7 @@ import 'package:ptodolist/features/task/models/additional_task.dart';
 import 'package:ptodolist/features/task/repos/task_repo.dart';
 import 'package:ptodolist/features/task/views/task_form_view.dart';
 import 'package:ptodolist/features/home/models/daily_record.dart';
+import 'package:ptodolist/features/home/repos/daily_record_repo.dart';
 import 'package:ptodolist/features/home/widgets/daily_progress_ring.dart';
 import 'package:ptodolist/features/home/widgets/add_bottom_sheet.dart';
 
@@ -16,12 +17,14 @@ class HomeView extends StatefulWidget {
   final CategoryRepository categoryRepo;
   final RoutineRepository routineRepo;
   final TaskRepository taskRepo;
+  final DailyRecordRepository? dailyRecordRepo;
 
   const HomeView({
     super.key,
     required this.categoryRepo,
     required this.routineRepo,
     required this.taskRepo,
+    this.dailyRecordRepo,
   });
 
   @override
@@ -39,13 +42,18 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _initDailyRecord() {
-    final activeRoutines = widget.routineRepo.getActive();
-    _dailyRecord = DailyRecord(
-      date: _today,
-      routineCompletions: {
-        for (final r in activeRoutines) r.id: false,
-      },
-    );
+    if (widget.dailyRecordRepo != null) {
+      _dailyRecord = widget.dailyRecordRepo!
+          .getOrCreateToday(widget.routineRepo.getActive());
+    } else {
+      final activeRoutines = widget.routineRepo.getActive();
+      _dailyRecord = DailyRecord(
+        date: _today,
+        routineCompletions: {
+          for (final r in activeRoutines) r.id: false,
+        },
+      );
+    }
   }
 
   List<Routine> get _activeRoutines => widget.routineRepo.getActive();
@@ -84,6 +92,7 @@ class _HomeViewState extends State<HomeView> {
   void _toggleRoutine(String routineId) {
     setState(() {
       _dailyRecord = _dailyRecord.toggleRoutine(routineId);
+      widget.dailyRecordRepo?.save(_dailyRecord);
     });
   }
 

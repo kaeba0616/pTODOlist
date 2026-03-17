@@ -4,7 +4,7 @@
 
 | Phase | 이름 | 목표 | Features | 상태 |
 |---|---|---|---|---|
-| Phase 1 | Core Foundation | 루틴+할일 관리, 자정 리셋 | F0~F5 | `[status: in-progress]` |
+| Phase 1 | Core Foundation | 루틴+할일 관리, 자정 리셋 | F0~F5 | `[status: done]` |
 | Phase 2 | Engagement | 통계, 스마트 알림 | F6~F7 | `[status: planned]` |
 | Phase 3 | Polish | 설정, 데이터 관리, 테마 | F8 | `[status: planned]` |
 
@@ -22,7 +22,7 @@
 | F2 | 루틴 관리 | F1 | `[status: completed]` |
 | F3 | 추가 할 일 | F1 | `[status: completed]` |
 | F4 | 오늘 화면 | F2, F3 | `[status: completed]` |
-| F5 | 일일 기록 & 자정 리셋 | F4 | `[status: todo]` |
+| F5 | 일일 기록 & 자정 리셋 | F4 | `[status: completed]` |
 
 **마일스톤**: 앱 실행 → 루틴 추가 → 체크 → 자정 리셋 → 다음 날 새로 시작
 
