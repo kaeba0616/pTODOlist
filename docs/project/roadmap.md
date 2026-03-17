@@ -10,7 +10,7 @@
 
 ---
 
-## Phase 1: Core Foundation `[status: planned]`
+## Phase 1: Core Foundation `[status: done]`
 
 **목표**: 사용자가 루틴과 할 일을 관리하고 매일 완료 여부를 체크할 수 있는 기본 앱
 
@@ -28,7 +28,7 @@
 
 ---
 
-## Phase 2: Engagement `[status: planned]`
+## Phase 2: Engagement `[status: done]`
 
 **목표**: 사용자가 달성률을 확인하고 알림으로 동기부여 받을 수 있음
 
