@@ -57,7 +57,23 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/stats',
-              builder: (context, state) => const StatsView(),
+              builder: (context, state) {
+                const useMock = String.fromEnvironment('USE_MOCK') == 'true';
+                if (useMock) {
+                  return StatsView(
+                    dailyRecordRepo: DailyRecordRepository(useMock: true),
+                    routineRepo: RoutineRepository(useMock: true),
+                    taskRepo: TaskRepository(useMock: true),
+                    categoryRepo: CategoryRepository(useMock: true),
+                  );
+                }
+                return StatsView(
+                  dailyRecordRepo: DailyRecordRepository(box: Hive.box<DailyRecord>('dailyRecords')),
+                  routineRepo: RoutineRepository(box: Hive.box<Routine>('routines')),
+                  taskRepo: TaskRepository(box: Hive.box<AdditionalTask>('additionalTasks')),
+                  categoryRepo: CategoryRepository(box: Hive.box<Category>('categories')),
+                );
+              },
             ),
           ],
         ),
