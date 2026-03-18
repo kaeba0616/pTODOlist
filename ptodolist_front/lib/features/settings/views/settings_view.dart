@@ -14,6 +14,7 @@ class SettingsView extends StatefulWidget {
 
 class _SettingsViewState extends State<SettingsView> {
   late bool _notificationEnabled;
+  late String _notificationTime;
   late int _retentionMonths;
   late String _themeMode;
 
@@ -22,8 +23,37 @@ class _SettingsViewState extends State<SettingsView> {
     super.initState();
     final settings = widget.settingsRepo?.getSettings() ?? const AppSettings();
     _notificationEnabled = settings.notificationEnabled;
+    _notificationTime = settings.notificationTime;
     _retentionMonths = settings.retentionMonths;
     _themeMode = settings.themeMode;
+  }
+
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  }
+
+  String _formatTime(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _displayTime(String time) {
+    final t = _parseTime(time);
+    final period = t.hour < 12 ? '오전' : '오후';
+    final displayHour = t.hour == 0 ? 12 : (t.hour > 12 ? t.hour - 12 : t.hour);
+    return '$period $displayHour:${t.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _pickNotificationTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _parseTime(_notificationTime),
+    );
+    if (picked != null) {
+      final timeStr = _formatTime(picked);
+      setState(() => _notificationTime = timeStr);
+      widget.settingsRepo?.updateNotificationTime(timeStr);
+    }
   }
 
   String _retentionLabel(int months) {
@@ -63,7 +93,7 @@ class _SettingsViewState extends State<SettingsView> {
           // 알림
           SwitchListTile(
             secondary: const Icon(Icons.notifications_outlined),
-            title: const Text('11시 알림'),
+            title: const Text('알림'),
             subtitle: const Text('미완료 항목이 있을 때만 알림'),
             value: _notificationEnabled,
             onChanged: (value) {
@@ -71,6 +101,15 @@ class _SettingsViewState extends State<SettingsView> {
               widget.settingsRepo?.updateNotificationEnabled(value);
             },
           ),
+          if (_notificationEnabled)
+            ListTile(
+              leading: const SizedBox(width: 24),
+              title: const Text('알림 시간'),
+              trailing: TextButton(
+                onPressed: _pickNotificationTime,
+                child: Text(_displayTime(_notificationTime)),
+              ),
+            ),
           const Divider(height: 1),
 
           // 데이터 보관 기간

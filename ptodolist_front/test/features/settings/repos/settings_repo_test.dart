@@ -42,5 +42,15 @@ void main() {
       expect(settings.retentionMonths, 12);
       expect(settings.themeMode, 'dark');
     });
+
+    test('notificationTime 파싱: TimeOfDay로 변환 가능하다', () {
+      const settings = AppSettings(notificationTime: '21:30');
+      final parts = settings.notificationTime.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+
+      expect(hour, 21);
+      expect(minute, 30);
+    });
   });
 }
