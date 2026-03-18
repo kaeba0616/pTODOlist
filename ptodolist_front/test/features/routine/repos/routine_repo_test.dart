@@ -63,5 +63,23 @@ void main() {
       repo.update(original.copyWith(subtasks: ['팔굽혀펴기', '윗몸일으키기']));
       expect(repo.getById('r-1')!.subtasks, ['팔굽혀펴기', '윗몸일으키기']);
     });
+
+    test('priority와 iconCodePoint로 루틴을 추가한다', () {
+      final id = repo.add(
+        title: '중요 루틴',
+        categoryId: 'cat-1',
+        priority: 2,
+        iconCodePoint: 0xe613,
+      );
+      final routine = repo.getById(id)!;
+      expect(routine.priority, 2);
+      expect(routine.iconCodePoint, 0xe613);
+    });
+
+    test('priority를 수정한다', () {
+      final original = repo.getById('r-1')!;
+      repo.update(original.copyWith(priority: 0));
+      expect(repo.getById('r-1')!.priority, 0);
+    });
   });
 }

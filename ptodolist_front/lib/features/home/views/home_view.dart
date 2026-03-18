@@ -109,6 +109,8 @@ class _HomeViewState extends State<HomeView> {
           categoryId: result['categoryId'],
           isActive: result['isActive'],
           subtasks: List<String>.from(result['subtasks'] ?? []),
+          priority: result['priority'] ?? routine.priority,
+          iconCodePoint: () => result['iconCodePoint'] as int?,
         );
         widget.routineRepo.update(updated);
         if (!updated.isActive) {
@@ -163,6 +165,8 @@ class _HomeViewState extends State<HomeView> {
             title: result['title'],
             categoryId: result['categoryId'],
             subtasks: List<String>.from(result['subtasks'] ?? []),
+            priority: result['priority'] ?? 1,
+            iconCodePoint: result['iconCodePoint'] as int?,
           );
           final updated = Map<String, bool>.from(
             _dailyRecord.routineCompletions,
@@ -254,6 +258,8 @@ class _HomeViewState extends State<HomeView> {
                       isDone: isDone,
                       categoryColor: category?.color ?? '#8B5CF6',
                       subtasks: routine.subtasks,
+                      priority: routine.priority,
+                      iconCodePoint: routine.iconCodePoint,
                       onToggle: () => _toggleRoutine(routine.id),
                       onTap: () => _editRoutine(routine),
                       onDelete: () {
@@ -316,6 +322,8 @@ class _HomeViewState extends State<HomeView> {
     required VoidCallback onTap,
     required VoidCallback onDelete,
     List<String> subtasks = const [],
+    int priority = 1,
+    int? iconCodePoint,
   }) {
     return Dismissible(
       key: Key(title + isDone.toString()),
@@ -331,14 +339,28 @@ class _HomeViewState extends State<HomeView> {
         mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
-            leading: GestureDetector(
-              onTap: onToggle,
-              child: Icon(
-                isDone ? Icons.check_circle : Icons.circle_outlined,
-                color: isDone
-                    ? const Color(0xFF10B981)
-                    : Theme.of(context).colorScheme.outline,
-              ),
+            leading: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (iconCodePoint != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(
+                      IconData(iconCodePoint, fontFamily: 'MaterialIcons'),
+                      size: 18,
+                      color: isDone ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                GestureDetector(
+                  onTap: onToggle,
+                  child: Icon(
+                    isDone ? Icons.check_circle : Icons.circle_outlined,
+                    color: isDone
+                        ? const Color(0xFF10B981)
+                        : Theme.of(context).colorScheme.outline,
+                  ),
+                ),
+              ],
             ),
             title: Text(
               title,
@@ -350,6 +372,14 @@ class _HomeViewState extends State<HomeView> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (priority == 2)
+                  const Icon(Icons.arrow_drop_up, color: Colors.red, size: 20),
+                if (priority == 0)
+                  Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.grey[400],
+                    size: 20,
+                  ),
                 if (subtasks.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),

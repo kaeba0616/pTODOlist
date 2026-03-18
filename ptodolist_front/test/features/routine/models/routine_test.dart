@@ -117,5 +117,89 @@ void main() {
       );
       expect(a, equals(b));
     });
+
+    test('priority 기본값은 1(보통)이다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      expect(routine.priority, 1);
+    });
+
+    test('priority를 지정하여 생성한다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        priority: 2,
+      );
+      expect(routine.priority, 2);
+    });
+
+    test('copyWith으로 priority를 변경한다', () {
+      final original = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      final updated = original.copyWith(priority: 0);
+      expect(updated.priority, 0);
+      expect(original.priority, 1);
+    });
+
+    test('priority가 다르면 동등하지 않다', () {
+      final a = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        priority: 2,
+      );
+      final b = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        priority: 0,
+      );
+      expect(a, isNot(equals(b)));
+    });
+
+    test('iconCodePoint 기본값은 null이다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      expect(routine.iconCodePoint, isNull);
+    });
+
+    test('iconCodePoint를 지정하여 생성한다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        iconCodePoint: 0xe613, // fitness_center
+      );
+      expect(routine.iconCodePoint, 0xe613);
+    });
+
+    test('copyWith으로 iconCodePoint를 변경한다', () {
+      final original = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      final updated = original.copyWith(iconCodePoint: () => 0xe613);
+      expect(updated.iconCodePoint, 0xe613);
+      expect(original.iconCodePoint, isNull);
+    });
   });
 }

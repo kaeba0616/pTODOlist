@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/routine/models/routine.dart';
+import 'package:ptodolist/features/routine/widgets/icon_presets.dart';
 
 class RoutineFormView extends StatefulWidget {
   final Routine? routine; // null이면 추가, 있으면 수정
@@ -18,6 +19,8 @@ class _RoutineFormViewState extends State<RoutineFormView> {
   late String _selectedCategoryId;
   late bool _isActive;
   late List<String> _subtasks;
+  late int _priority;
+  late int? _iconCodePoint;
   final _subtaskController = TextEditingController();
 
   bool get _isEditing => widget.routine != null;
@@ -31,6 +34,8 @@ class _RoutineFormViewState extends State<RoutineFormView> {
         (widget.categories.isNotEmpty ? widget.categories.last.id : '');
     _isActive = widget.routine?.isActive ?? true;
     _subtasks = List.from(widget.routine?.subtasks ?? []);
+    _priority = widget.routine?.priority ?? 1;
+    _iconCodePoint = widget.routine?.iconCodePoint;
   }
 
   @override
@@ -118,6 +123,74 @@ class _RoutineFormViewState extends State<RoutineFormView> {
                 if (value != null) setState(() => _selectedCategoryId = value);
               },
             ),
+            const SizedBox(height: 20),
+            Text(
+              '아이콘',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 120,
+              child: GridView.count(
+                crossAxisCount: 6,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                children: routineIconPresets.map((preset) {
+                  final isSelected = _iconCodePoint == preset.icon.codePoint;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _iconCodePoint = isSelected
+                            ? null
+                            : preset.icon.codePoint;
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: isSelected
+                            ? Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2,
+                              )
+                            : null,
+                      ),
+                      child: Icon(
+                        preset.icon,
+                        size: 22,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey[600],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '우선순위',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<int>(
+              segments: const [
+                ButtonSegment(value: 0, label: Text('낮음')),
+                ButtonSegment(value: 1, label: Text('보통')),
+                ButtonSegment(value: 2, label: Text('높음')),
+              ],
+              selected: {_priority},
+              onSelectionChanged: (values) {
+                setState(() => _priority = values.first);
+              },
+            ),
             if (_isEditing) ...[
               const SizedBox(height: 16),
               CheckboxListTile(
@@ -185,6 +258,8 @@ class _RoutineFormViewState extends State<RoutineFormView> {
                         'categoryId': _selectedCategoryId,
                         'isActive': _isActive,
                         'subtasks': _subtasks,
+                        'priority': _priority,
+                        'iconCodePoint': _iconCodePoint,
                       });
                     },
               child: const Text('저장'),

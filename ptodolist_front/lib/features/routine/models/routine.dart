@@ -6,6 +6,8 @@ class Routine {
   final bool isActive;
   final int order;
   final List<String> subtasks;
+  final int priority; // 0=낮음, 1=보통, 2=높음
+  final int? iconCodePoint; // Material Icon codePoint, null=기본
 
   const Routine({
     required this.id,
@@ -15,6 +17,8 @@ class Routine {
     this.isActive = true,
     this.order = 0,
     this.subtasks = const [],
+    this.priority = 1,
+    this.iconCodePoint,
   });
 
   Routine copyWith({
@@ -25,6 +29,8 @@ class Routine {
     bool? isActive,
     int? order,
     List<String>? subtasks,
+    int? priority,
+    int? Function()? iconCodePoint,
   }) {
     return Routine(
       id: id ?? this.id,
@@ -34,6 +40,10 @@ class Routine {
       isActive: isActive ?? this.isActive,
       order: order ?? this.order,
       subtasks: subtasks ?? this.subtasks,
+      priority: priority ?? this.priority,
+      iconCodePoint: iconCodePoint != null
+          ? iconCodePoint()
+          : this.iconCodePoint,
     );
   }
 
@@ -45,7 +55,9 @@ class Routine {
         title != other.title ||
         categoryId != other.categoryId ||
         isActive != other.isActive ||
-        order != other.order)
+        order != other.order ||
+        priority != other.priority ||
+        iconCodePoint != other.iconCodePoint)
       return false;
     if (subtasks.length != other.subtasks.length) return false;
     for (int i = 0; i < subtasks.length; i++) {
@@ -61,6 +73,8 @@ class Routine {
     categoryId,
     isActive,
     order,
+    priority,
+    iconCodePoint,
     Object.hashAll(subtasks),
   );
 }

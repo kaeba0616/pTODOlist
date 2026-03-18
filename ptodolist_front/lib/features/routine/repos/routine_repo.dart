@@ -36,6 +36,8 @@ class RoutineRepository {
     required String title,
     required String categoryId,
     List<String> subtasks = const [],
+    int priority = 1,
+    int? iconCodePoint,
   }) {
     final id = _uuid.v4();
     final routine = Routine(
@@ -45,6 +47,8 @@ class RoutineRepository {
       createdAt: DateTime.now(),
       order: getAll().length,
       subtasks: subtasks,
+      priority: priority,
+      iconCodePoint: iconCodePoint,
     );
     if (useMock) {
       _mockData.add(routine);

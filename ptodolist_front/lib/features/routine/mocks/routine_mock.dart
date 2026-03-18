@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:ptodolist/features/routine/models/routine.dart';
 
 final mockRoutines = [
@@ -8,6 +9,8 @@ final mockRoutines = [
     createdAt: DateTime(2026, 1, 1),
     order: 0,
     subtasks: ['스트레칭 5분', '런닝 30분', '쿨다운 5분'],
+    priority: 2,
+    iconCodePoint: Icons.fitness_center.codePoint,
   ),
   Routine(
     id: 'r-2',
@@ -16,6 +19,8 @@ final mockRoutines = [
     createdAt: DateTime(2026, 1, 1),
     order: 1,
     subtasks: ['단어 50개', '리스닝 20분'],
+    priority: 2,
+    iconCodePoint: Icons.menu_book.codePoint,
   ),
   Routine(
     id: 'r-3',
@@ -23,6 +28,7 @@ final mockRoutines = [
     categoryId: 'cat-2',
     createdAt: DateTime(2026, 1, 1),
     order: 2,
+    iconCodePoint: Icons.menu_book.codePoint,
   ),
   Routine(
     id: 'r-4',
@@ -30,6 +36,8 @@ final mockRoutines = [
     categoryId: 'cat-4',
     createdAt: DateTime(2026, 1, 1),
     order: 3,
+    priority: 0,
+    iconCodePoint: Icons.water_drop.codePoint,
   ),
   Routine(
     id: 'r-5',
