@@ -5,6 +5,7 @@ class Routine {
   final DateTime createdAt;
   final bool isActive;
   final int order;
+  final List<String> subtasks;
 
   const Routine({
     required this.id,
@@ -13,6 +14,7 @@ class Routine {
     required this.createdAt,
     this.isActive = true,
     this.order = 0,
+    this.subtasks = const [],
   });
 
   Routine copyWith({
@@ -22,6 +24,7 @@ class Routine {
     DateTime? createdAt,
     bool? isActive,
     int? order,
+    List<String>? subtasks,
   }) {
     return Routine(
       id: id ?? this.id,
@@ -30,6 +33,7 @@ class Routine {
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,
       order: order ?? this.order,
+      subtasks: subtasks ?? this.subtasks,
     );
   }
 

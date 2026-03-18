@@ -6,6 +6,7 @@ class AdditionalTask {
   final String targetDate; // yyyy-MM-dd
   final bool isCompleted;
   final int order;
+  final List<String> subtasks;
 
   const AdditionalTask({
     required this.id,
@@ -15,6 +16,7 @@ class AdditionalTask {
     required this.targetDate,
     this.isCompleted = false,
     this.order = 0,
+    this.subtasks = const [],
   });
 
   AdditionalTask copyWith({
@@ -25,6 +27,7 @@ class AdditionalTask {
     String? targetDate,
     bool? isCompleted,
     int? order,
+    List<String>? subtasks,
   }) {
     return AdditionalTask(
       id: id ?? this.id,
@@ -34,6 +37,7 @@ class AdditionalTask {
       targetDate: targetDate ?? this.targetDate,
       isCompleted: isCompleted ?? this.isCompleted,
       order: order ?? this.order,
+      subtasks: subtasks ?? this.subtasks,
     );
   }
 

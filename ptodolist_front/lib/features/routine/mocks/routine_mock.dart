@@ -1,8 +1,8 @@
 import 'package:ptodolist/features/routine/models/routine.dart';
 
 final mockRoutines = [
-  Routine(id: 'r-1', title: '아침 운동', categoryId: 'cat-1', createdAt: DateTime(2026, 1, 1), order: 0),
-  Routine(id: 'r-2', title: '영어 공부', categoryId: 'cat-2', createdAt: DateTime(2026, 1, 1), order: 1),
+  Routine(id: 'r-1', title: '아침 운동', categoryId: 'cat-1', createdAt: DateTime(2026, 1, 1), order: 0, subtasks: ['스트레칭 5분', '런닝 30분', '쿨다운 5분']),
+  Routine(id: 'r-2', title: '영어 공부', categoryId: 'cat-2', createdAt: DateTime(2026, 1, 1), order: 1, subtasks: ['단어 50개', '리스닝 20분']),
   Routine(id: 'r-3', title: '독서 30분', categoryId: 'cat-2', createdAt: DateTime(2026, 1, 1), order: 2),
   Routine(id: 'r-4', title: '물 2L 마시기', categoryId: 'cat-4', createdAt: DateTime(2026, 1, 1), order: 3),
   Routine(id: 'r-5', title: '일기 쓰기', categoryId: 'cat-4', createdAt: DateTime(2026, 1, 1), order: 4),

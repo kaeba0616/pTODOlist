@@ -32,7 +32,7 @@ class RoutineRepository {
     return _box!.get(id);
   }
 
-  String add({required String title, required String categoryId}) {
+  String add({required String title, required String categoryId, List<String> subtasks = const []}) {
     final id = _uuid.v4();
     final routine = Routine(
       id: id,
@@ -40,6 +40,7 @@ class RoutineRepository {
       categoryId: categoryId,
       createdAt: DateTime.now(),
       order: getAll().length,
+      subtasks: subtasks,
     );
     if (useMock) {
       _mockData.add(routine);

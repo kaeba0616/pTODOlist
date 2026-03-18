@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:ptodolist/features/home/models/daily_record.dart';
 import 'package:ptodolist/features/task/models/additional_task.dart';
@@ -11,6 +12,7 @@ class NotificationService {
   static final _dateFmt = DateFormat('yyyy-MM-dd');
 
   static Future<void> init() async {
+    if (kIsWeb) return; // 웹에서는 알림 미지원
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -25,6 +27,7 @@ class NotificationService {
   }
 
   static Future<void> requestPermission() async {
+    if (kIsWeb) return;
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     await android?.requestNotificationsPermission();
@@ -35,6 +38,7 @@ class NotificationService {
     required DailyRecord? dailyRecord,
     required List<AdditionalTask> todayTasks,
   }) async {
+    if (kIsWeb) return;
     final routineIncomplete = dailyRecord?.routineCompletions.values
             .where((v) => !v)
             .length ??
@@ -67,6 +71,7 @@ class NotificationService {
 
   /// 알림 취소
   static Future<void> cancelReminder() async {
+    if (kIsWeb) return;
     await _plugin.cancel(_notificationId);
   }
 }

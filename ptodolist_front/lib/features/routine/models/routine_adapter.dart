@@ -18,13 +18,16 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       createdAt: fields[3] as DateTime,
       isActive: fields[4] as bool,
       order: fields[5] as int,
+      subtasks: fields.containsKey(6)
+          ? List<String>.from(fields[6] as List)
+          : const [],
     );
   }
 
   @override
   void write(BinaryWriter writer, Routine obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -36,6 +39,8 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       ..writeByte(4)
       ..write(obj.isActive)
       ..writeByte(5)
-      ..write(obj.order);
+      ..write(obj.order)
+      ..writeByte(6)
+      ..write(obj.subtasks);
   }
 }

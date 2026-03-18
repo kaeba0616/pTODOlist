@@ -102,6 +102,59 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
+  Future<void> _editRoutine(Routine routine) async {
+    final categories = widget.categoryRepo.getAll();
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => RoutineFormView(
+        routine: routine,
+        categories: categories,
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() {
+        final updated = routine.copyWith(
+          title: result['title'],
+          categoryId: result['categoryId'],
+          isActive: result['isActive'],
+          subtasks: List<String>.from(result['subtasks'] ?? []),
+        );
+        widget.routineRepo.update(updated);
+        if (!updated.isActive) {
+          final completions =
+              Map<String, bool>.from(_dailyRecord.routineCompletions);
+          completions.remove(updated.id);
+          _dailyRecord =
+              _dailyRecord.copyWith(routineCompletions: completions);
+          widget.dailyRecordRepo?.save(_dailyRecord);
+        }
+      });
+    }
+  }
+
+  Future<void> _editTask(AdditionalTask task) async {
+    final categories = widget.categoryRepo.getAll();
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => TaskFormView(
+        task: task,
+        categories: categories,
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() {
+        final updated = task.copyWith(
+          title: result['title'],
+          categoryId: result['categoryId'],
+          subtasks: List<String>.from(result['subtasks'] ?? []),
+        );
+        widget.taskRepo.update(updated);
+      });
+    }
+  }
+
   Future<void> _showAddSheet() async {
     final type = await showModalBottomSheet<AddType>(
       context: context,
@@ -122,6 +175,7 @@ class _HomeViewState extends State<HomeView> {
           final id = widget.routineRepo.add(
             title: result['title'],
             categoryId: result['categoryId'],
+            subtasks: List<String>.from(result['subtasks'] ?? []),
           );
           final updated = Map<String, bool>.from(_dailyRecord.routineCompletions);
           updated[id] = false;
@@ -139,6 +193,7 @@ class _HomeViewState extends State<HomeView> {
           widget.taskRepo.add(
             title: result['title'],
             categoryId: result['categoryId'],
+            subtasks: List<String>.from(result['subtasks'] ?? []),
           );
         });
       }
@@ -208,7 +263,9 @@ class _HomeViewState extends State<HomeView> {
                       title: routine.title,
                       isDone: isDone,
                       categoryColor: category?.color ?? '#8B5CF6',
+                      subtasks: routine.subtasks,
                       onToggle: () => _toggleRoutine(routine.id),
+                      onTap: () => _editRoutine(routine),
                       onDelete: () {
                         setState(() {
                           widget.routineRepo.delete(routine.id);
@@ -239,7 +296,9 @@ class _HomeViewState extends State<HomeView> {
                       title: task.title,
                       isDone: task.isCompleted,
                       categoryColor: category?.color ?? '#8B5CF6',
+                      subtasks: task.subtasks,
                       onToggle: () => _toggleTask(task.id),
+                      onTap: () => _editTask(task),
                       onDelete: () {
                         setState(() {
                           widget.taskRepo.delete(task.id);
@@ -262,7 +321,9 @@ class _HomeViewState extends State<HomeView> {
     required bool isDone,
     required String categoryColor,
     required VoidCallback onToggle,
+    required VoidCallback onTap,
     required VoidCallback onDelete,
+    List<String> subtasks = const [],
   }) {
     return Dismissible(
       key: Key(title + isDone.toString()),
@@ -274,32 +335,83 @@ class _HomeViewState extends State<HomeView> {
         color: Colors.red,
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      child: ListTile(
-        leading: GestureDetector(
-          onTap: onToggle,
-          child: Icon(
-            isDone ? Icons.check_circle : Icons.circle_outlined,
-            color: isDone
-                ? const Color(0xFF10B981)
-                : Theme.of(context).colorScheme.outline,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: GestureDetector(
+              onTap: onToggle,
+              child: Icon(
+                isDone ? Icons.check_circle : Icons.circle_outlined,
+                color: isDone
+                    ? const Color(0xFF10B981)
+                    : Theme.of(context).colorScheme.outline,
+              ),
+            ),
+            title: Text(
+              title,
+              style: TextStyle(
+                decoration: isDone ? TextDecoration.lineThrough : null,
+                color: isDone ? Colors.grey : null,
+              ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (subtasks.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      '${subtasks.length}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ),
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: _parseColor(categoryColor),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+            onTap: onTap,
           ),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            decoration: isDone ? TextDecoration.lineThrough : null,
-            color: isDone ? Colors.grey : null,
-          ),
-        ),
-        trailing: Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: _parseColor(categoryColor),
-            shape: BoxShape.circle,
-          ),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+          if (subtasks.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 56, right: 16, bottom: 8),
+              child: Column(
+                children: subtasks.map((sub) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Row(
+                      children: [
+                        Icon(Icons.subdirectory_arrow_right,
+                            size: 14, color: Colors.grey[400]),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            sub,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDone ? Colors.grey[400] : Colors.grey[600],
+                              decoration:
+                                  isDone ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+        ],
       ),
     );
   }

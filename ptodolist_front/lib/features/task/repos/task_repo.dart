@@ -39,7 +39,16 @@ class TaskRepository {
     return _box!.get(id);
   }
 
-  String add({required String title, required String categoryId, String? targetDate}) {
+  void update(AdditionalTask task) {
+    if (useMock) {
+      final index = _mockData.indexWhere((t) => t.id == task.id);
+      if (index != -1) _mockData[index] = task;
+    } else {
+      _box!.put(task.id, task);
+    }
+  }
+
+  String add({required String title, required String categoryId, String? targetDate, List<String> subtasks = const []}) {
     final id = _uuid.v4();
     final task = AdditionalTask(
       id: id,
@@ -48,6 +57,7 @@ class TaskRepository {
       createdAt: DateTime.now(),
       targetDate: targetDate ?? _dateFmt.format(DateTime.now()),
       order: getAll().length,
+      subtasks: subtasks,
     );
     if (useMock) {
       _mockData.add(task);
