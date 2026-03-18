@@ -8,7 +8,7 @@
 
 ## Feature 목록
 
-### F9: Subtask & Edit Cleanup `[status: in-progress]`
+### F9: Subtask & Edit Cleanup `[status: completed]`
 - **Feature ID**: F9
 - **예상 기간**: 1~2일
 - **의존성**: 없음
