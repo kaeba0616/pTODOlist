@@ -12,11 +12,7 @@ void main() async {
   await DatabaseService.init();
   await NotificationService.init();
 
-  runApp(
-    const ProviderScope(
-      child: PtodolistApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: PtodolistApp()));
 }
 
 class PtodolistApp extends StatelessWidget {

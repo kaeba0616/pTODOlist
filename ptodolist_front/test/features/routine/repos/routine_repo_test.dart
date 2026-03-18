@@ -47,5 +47,21 @@ void main() {
       // r-1(운동), r-7(운동) → cat-5로 이동
       expect(reassigned.length, greaterThanOrEqualTo(2));
     });
+
+    test('subtasks와 함께 루틴을 추가한다', () {
+      final id = repo.add(
+        title: '운동 루틴',
+        categoryId: 'cat-1',
+        subtasks: ['스트레칭', '러닝'],
+      );
+      final routine = repo.getById(id)!;
+      expect(routine.subtasks, ['스트레칭', '러닝']);
+    });
+
+    test('subtasks를 수정한다', () {
+      final original = repo.getById('r-1')!;
+      repo.update(original.copyWith(subtasks: ['팔굽혀펴기', '윗몸일으키기']));
+      expect(repo.getById('r-1')!.subtasks, ['팔굽혀펴기', '윗몸일으키기']);
+    });
   });
 }

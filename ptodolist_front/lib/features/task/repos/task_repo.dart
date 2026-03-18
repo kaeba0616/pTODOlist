@@ -48,7 +48,12 @@ class TaskRepository {
     }
   }
 
-  String add({required String title, required String categoryId, String? targetDate, List<String> subtasks = const []}) {
+  String add({
+    required String title,
+    required String categoryId,
+    String? targetDate,
+    List<String> subtasks = const [],
+  }) {
     final id = _uuid.v4();
     final task = AdditionalTask(
       id: id,
@@ -101,7 +106,9 @@ class TaskRepository {
         return t;
       }).toList();
     } else {
-      for (final task in _box!.values.where((t) => t.categoryId == oldCategoryId)) {
+      for (final task in _box!.values.where(
+        (t) => t.categoryId == oldCategoryId,
+      )) {
         _box!.put(task.id, task.copyWith(categoryId: newCategoryId));
       }
     }

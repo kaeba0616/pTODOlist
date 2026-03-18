@@ -19,7 +19,11 @@ void main() {
     });
 
     test('할 일을 추가한다', () {
-      final id = repo.add(title: '새 할 일', categoryId: 'cat-1', targetDate: '2026-03-17');
+      final id = repo.add(
+        title: '새 할 일',
+        categoryId: 'cat-1',
+        targetDate: '2026-03-17',
+      );
       expect(repo.getAll().length, 4);
       expect(repo.getById(id)!.title, '새 할 일');
     });
@@ -47,6 +51,23 @@ void main() {
       repo.reassignCategory('cat-4', 'cat-5');
       final reassigned = repo.getAll().where((t) => t.categoryId == 'cat-5');
       expect(reassigned.length, 2); // t-1, t-3
+    });
+
+    test('subtasks와 함께 할 일을 추가한다', () {
+      final id = repo.add(
+        title: '장보기',
+        categoryId: 'cat-4',
+        targetDate: '2026-03-17',
+        subtasks: ['우유', '계란'],
+      );
+      final task = repo.getById(id)!;
+      expect(task.subtasks, ['우유', '계란']);
+    });
+
+    test('subtasks를 수정한다', () {
+      final original = repo.getById('t-1')!;
+      repo.update(original.copyWith(subtasks: ['빵', '버터']));
+      expect(repo.getById('t-1')!.subtasks, ['빵', '버터']);
     });
   });
 }

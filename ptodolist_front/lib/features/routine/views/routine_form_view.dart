@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/routine/models/routine.dart';
 
@@ -6,11 +7,7 @@ class RoutineFormView extends StatefulWidget {
   final Routine? routine; // null이면 추가, 있으면 수정
   final List<Category> categories;
 
-  const RoutineFormView({
-    super.key,
-    this.routine,
-    required this.categories,
-  });
+  const RoutineFormView({super.key, this.routine, required this.categories});
 
   @override
   State<RoutineFormView> createState() => _RoutineFormViewState();
@@ -29,7 +26,8 @@ class _RoutineFormViewState extends State<RoutineFormView> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.routine?.title ?? '');
-    _selectedCategoryId = widget.routine?.categoryId ??
+    _selectedCategoryId =
+        widget.routine?.categoryId ??
         (widget.categories.isNotEmpty ? widget.categories.last.id : '');
     _isActive = widget.routine?.isActive ?? true;
     _subtasks = List.from(widget.routine?.subtasks ?? []);
@@ -49,13 +47,6 @@ class _RoutineFormViewState extends State<RoutineFormView> {
       _subtasks.add(text);
       _subtaskController.clear();
     });
-  }
-
-  Color _parseColor(String hex) {
-    final buffer = StringBuffer();
-    if (hex.length == 7) buffer.write('FF');
-    buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
   }
 
   @override
@@ -113,7 +104,7 @@ class _RoutineFormViewState extends State<RoutineFormView> {
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: _parseColor(c.color),
+                          color: parseHexColor(c.color),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -133,23 +124,27 @@ class _RoutineFormViewState extends State<RoutineFormView> {
                 title: const Text('비활성화'),
                 subtitle: const Text('홈 화면에서 숨깁니다'),
                 value: !_isActive,
-                onChanged: (value) => setState(() => _isActive = !(value ?? false)),
+                onChanged: (value) =>
+                    setState(() => _isActive = !(value ?? false)),
               ),
             ],
             const SizedBox(height: 20),
             Text(
               '세부 항목',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             ..._subtasks.asMap().entries.map((entry) {
               return ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.subdirectory_arrow_right,
-                    size: 18, color: Colors.grey[500]),
+                leading: Icon(
+                  Icons.subdirectory_arrow_right,
+                  size: 18,
+                  color: Colors.grey[500],
+                ),
                 title: Text(entry.value),
                 trailing: IconButton(
                   icon: const Icon(Icons.close, size: 18),

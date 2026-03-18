@@ -32,7 +32,11 @@ class RoutineRepository {
     return _box!.get(id);
   }
 
-  String add({required String title, required String categoryId, List<String> subtasks = const []}) {
+  String add({
+    required String title,
+    required String categoryId,
+    List<String> subtasks = const [],
+  }) {
     final id = _uuid.v4();
     final routine = Routine(
       id: id,
@@ -81,7 +85,9 @@ class RoutineRepository {
         return r;
       }).toList();
     } else {
-      for (final routine in _box!.values.where((r) => r.categoryId == oldCategoryId)) {
+      for (final routine in _box!.values.where(
+        (r) => r.categoryId == oldCategoryId,
+      )) {
         _box!.put(routine.id, routine.copyWith(categoryId: newCategoryId));
       }
     }

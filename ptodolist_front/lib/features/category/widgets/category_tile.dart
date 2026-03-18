@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 
 class CategoryTile extends StatelessWidget {
@@ -14,13 +15,6 @@ class CategoryTile extends StatelessWidget {
     this.onTap,
     this.onDelete,
   });
-
-  Color _parseColor(String hex) {
-    final buffer = StringBuffer();
-    if (hex.length == 7) buffer.write('FF');
-    buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +32,9 @@ class CategoryTile extends StatelessWidget {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('카테고리 삭제'),
-            content: Text("'${category.name}' 카테고리를 삭제하면\n이 카테고리의 루틴과 할 일이 '기타'로 이동됩니다."),
+            content: Text(
+              "'${category.name}' 카테고리를 삭제하면\n이 카테고리의 루틴과 할 일이 '기타'로 이동됩니다.",
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -64,16 +60,16 @@ class CategoryTile extends StatelessWidget {
           width: 12,
           height: 12,
           decoration: BoxDecoration(
-            color: _parseColor(category.color),
+            color: parseHexColor(category.color),
             shape: BoxShape.circle,
           ),
         ),
         title: Text(category.name),
         trailing: Text(
           '$itemCount개',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Colors.grey,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: Colors.grey),
         ),
         onTap: onTap,
       ),

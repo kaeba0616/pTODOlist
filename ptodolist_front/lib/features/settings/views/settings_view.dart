@@ -104,10 +104,7 @@ class _SettingsViewState extends State<SettingsView> {
               value: _themeMode,
               underline: const SizedBox(),
               items: ['system', 'light', 'dark'].map((m) {
-                return DropdownMenuItem(
-                  value: m,
-                  child: Text(_themeLabel(m)),
-                );
+                return DropdownMenuItem(value: m, child: Text(_themeLabel(m)));
               }).toList(),
               onChanged: (value) {
                 if (value != null) {
@@ -117,8 +114,8 @@ class _SettingsViewState extends State<SettingsView> {
                     value == 'light'
                         ? ThemeMode.light
                         : value == 'dark'
-                            ? ThemeMode.dark
-                            : ThemeMode.system,
+                        ? ThemeMode.dark
+                        : ThemeMode.system,
                   );
                 }
               },
@@ -132,19 +129,16 @@ class _SettingsViewState extends State<SettingsView> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               '정보',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
             ),
           ),
           const SizedBox(height: 8),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('앱 버전'),
-            trailing: Text(
-              'v1.0.0',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
+            trailing: Text('v1.0.0', style: TextStyle(color: Colors.grey[600])),
           ),
         ],
       ),

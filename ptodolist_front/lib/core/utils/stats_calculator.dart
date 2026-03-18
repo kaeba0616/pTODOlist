@@ -76,13 +76,20 @@ class StatsCalculator {
     for (int w = 0; w < weeks; w++) {
       final start = w * 7;
       final end = start + 7;
-      final weekSlice = daily.sublist(start, end > daily.length ? daily.length : end);
+      final weekSlice = daily.sublist(
+        start,
+        end > daily.length ? daily.length : end,
+      );
       final nonZero = weekSlice.where((d) => d.rate > 0).toList();
       final avg = nonZero.isEmpty
           ? 0.0
           : nonZero.fold(0.0, (sum, d) => sum + d.rate) / nonZero.length;
 
-      final label = w == 0 ? '${weeks - w}주 전' : w == weeks - 1 ? '이번 주' : '${weeks - w}주 전';
+      final label = w == 0
+          ? '${weeks - w}주 전'
+          : w == weeks - 1
+          ? '이번 주'
+          : '${weeks - w}주 전';
       stats.add(DayStat(date: '', label: label, rate: avg));
     }
     return stats;
@@ -121,7 +128,8 @@ class StatsCalculator {
         final total = (record?.totalCount ?? 0) + dayTasks.length;
         if (total == 0) continue;
 
-        final done = (record?.completedCount ?? 0) +
+        final done =
+            (record?.completedCount ?? 0) +
             dayTasks.where((t) => t.isCompleted).length;
         totalRate += done / total;
         validDays++;

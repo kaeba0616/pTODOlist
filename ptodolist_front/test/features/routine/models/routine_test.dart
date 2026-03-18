@@ -19,7 +19,10 @@ void main() {
 
     test('copyWith으로 수정된다', () {
       final original = Routine(
-        id: '1', title: '운동', categoryId: 'cat-1', createdAt: DateTime(2026, 1, 1),
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
       );
       final updated = original.copyWith(title: '헬스', isActive: false);
 
@@ -29,9 +32,89 @@ void main() {
     });
 
     test('equality', () {
-      final a = Routine(id: '1', title: '운동', categoryId: 'cat-1', createdAt: DateTime(2026, 1, 1));
-      final b = Routine(id: '1', title: '운동', categoryId: 'cat-1', createdAt: DateTime(2026, 1, 1));
+      final a = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      final b = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
 
+      expect(a, equals(b));
+    });
+
+    test('subtasks 기본값은 빈 리스트이다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      expect(routine.subtasks, isEmpty);
+    });
+
+    test('subtasks와 함께 생성된다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        subtasks: ['스트레칭', '러닝'],
+      );
+      expect(routine.subtasks, ['스트레칭', '러닝']);
+    });
+
+    test('copyWith으로 subtasks를 수정한다', () {
+      final original = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        subtasks: ['스트레칭'],
+      );
+      final updated = original.copyWith(subtasks: ['스트레칭', '러닝']);
+      expect(updated.subtasks, ['스트레칭', '러닝']);
+      expect(original.subtasks, ['스트레칭']); // 원본 불변
+    });
+
+    test('subtasks가 다르면 동등하지 않다', () {
+      final a = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        subtasks: ['스트레칭'],
+      );
+      final b = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        subtasks: ['러닝'],
+      );
+      expect(a, isNot(equals(b)));
+    });
+
+    test('subtasks가 같으면 동등하다', () {
+      final a = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        subtasks: ['스트레칭', '러닝'],
+      );
+      final b = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        subtasks: ['스트레칭', '러닝'],
+      );
       expect(a, equals(b));
     });
   });

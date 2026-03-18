@@ -18,34 +18,46 @@ void main() {
     testWidgets('바텀 네비게이션 탭 전환이 동작한다', (tester) async {
       int selectedIndex = 0;
 
-      await tester.pumpWidget(MaterialApp(
-        theme: AppTheme.lightTheme(),
-        home: StatefulBuilder(
-          builder: (context, setState) {
-            final screens = [
-              HomeView(
-                categoryRepo: CategoryRepository(useMock: true),
-                routineRepo: RoutineRepository(useMock: true),
-                taskRepo: TaskRepository(useMock: true),
-              ),
-              const StatsView(),
-              const SettingsView(),
-            ];
-            return Scaffold(
-              body: screens[selectedIndex],
-              bottomNavigationBar: NavigationBar(
-                selectedIndex: selectedIndex,
-                onDestinationSelected: (i) => setState(() => selectedIndex = i),
-                destinations: const [
-                  NavigationDestination(icon: Icon(Icons.home_outlined), label: '오늘'),
-                  NavigationDestination(icon: Icon(Icons.bar_chart_outlined), label: '통계'),
-                  NavigationDestination(icon: Icon(Icons.settings_outlined), label: '설정'),
-                ],
-              ),
-            );
-          },
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme(),
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              final screens = [
+                HomeView(
+                  categoryRepo: CategoryRepository(useMock: true),
+                  routineRepo: RoutineRepository(useMock: true),
+                  taskRepo: TaskRepository(useMock: true),
+                ),
+                const StatsView(),
+                const SettingsView(),
+              ];
+              return Scaffold(
+                body: screens[selectedIndex],
+                bottomNavigationBar: NavigationBar(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (i) =>
+                      setState(() => selectedIndex = i),
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      label: '오늘',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.bar_chart_outlined),
+                      label: '통계',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.settings_outlined),
+                      label: '설정',
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
-      ));
+      );
       await tester.pumpAndSettle();
 
       // 홈 탭 (기본)

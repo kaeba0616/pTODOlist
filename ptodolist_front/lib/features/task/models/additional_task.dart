@@ -42,18 +42,32 @@ class AdditionalTask {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AdditionalTask &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          title == other.title &&
-          categoryId == other.categoryId &&
-          targetDate == other.targetDate &&
-          isCompleted == other.isCompleted &&
-          order == other.order;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AdditionalTask || runtimeType != other.runtimeType)
+      return false;
+    if (id != other.id ||
+        title != other.title ||
+        categoryId != other.categoryId ||
+        targetDate != other.targetDate ||
+        isCompleted != other.isCompleted ||
+        order != other.order)
+      return false;
+    if (subtasks.length != other.subtasks.length) return false;
+    for (int i = 0; i < subtasks.length; i++) {
+      if (subtasks[i] != other.subtasks[i]) return false;
+    }
+    return true;
+  }
 
   @override
-  int get hashCode =>
-      Object.hash(id, title, categoryId, targetDate, isCompleted, order);
+  int get hashCode => Object.hash(
+    id,
+    title,
+    categoryId,
+    targetDate,
+    isCompleted,
+    order,
+    Object.hashAll(subtasks),
+  );
 }

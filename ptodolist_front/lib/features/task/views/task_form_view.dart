@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/task/models/additional_task.dart';
 
@@ -6,11 +7,7 @@ class TaskFormView extends StatefulWidget {
   final AdditionalTask? task; // null이면 추가, 있으면 수정
   final List<Category> categories;
 
-  const TaskFormView({
-    super.key,
-    this.task,
-    required this.categories,
-  });
+  const TaskFormView({super.key, this.task, required this.categories});
 
   @override
   State<TaskFormView> createState() => _TaskFormViewState();
@@ -28,7 +25,8 @@ class _TaskFormViewState extends State<TaskFormView> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.task?.title ?? '');
-    _selectedCategoryId = widget.task?.categoryId ??
+    _selectedCategoryId =
+        widget.task?.categoryId ??
         (widget.categories.isNotEmpty ? widget.categories.last.id : '');
     _subtasks = List.from(widget.task?.subtasks ?? []);
   }
@@ -47,13 +45,6 @@ class _TaskFormViewState extends State<TaskFormView> {
       _subtasks.add(text);
       _subtaskController.clear();
     });
-  }
-
-  Color _parseColor(String hex) {
-    final buffer = StringBuffer();
-    if (hex.length == 7) buffer.write('FF');
-    buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
   }
 
   @override
@@ -111,7 +102,7 @@ class _TaskFormViewState extends State<TaskFormView> {
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: _parseColor(c.color),
+                          color: parseHexColor(c.color),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -128,17 +119,20 @@ class _TaskFormViewState extends State<TaskFormView> {
             const SizedBox(height: 20),
             Text(
               '세부 항목',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             ..._subtasks.asMap().entries.map((entry) {
               return ListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.subdirectory_arrow_right,
-                    size: 18, color: Colors.grey[500]),
+                leading: Icon(
+                  Icons.subdirectory_arrow_right,
+                  size: 18,
+                  color: Colors.grey[500],
+                ),
                 title: Text(entry.value),
                 trailing: IconButton(
                   icon: const Icon(Icons.close, size: 18),

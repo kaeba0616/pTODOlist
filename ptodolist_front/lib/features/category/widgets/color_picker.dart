@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/features/category/mocks/category_mock.dart';
 
 class ColorPicker extends StatelessWidget {
@@ -10,13 +11,6 @@ class ColorPicker extends StatelessWidget {
     required this.selectedColor,
     required this.onColorSelected,
   });
-
-  Color _parseColor(String hex) {
-    final buffer = StringBuffer();
-    if (hex.length == 7) buffer.write('FF');
-    buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,13 +25,18 @@ class ColorPicker extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _parseColor(colorHex),
+              color: parseHexColor(colorHex),
               shape: BoxShape.circle,
               border: isSelected
                   ? Border.all(color: Colors.white, width: 2)
                   : null,
               boxShadow: isSelected
-                  ? [BoxShadow(color: _parseColor(colorHex).withAlpha(128), blurRadius: 8)]
+                  ? [
+                      BoxShadow(
+                        color: parseHexColor(colorHex).withAlpha(128),
+                        blurRadius: 8,
+                      ),
+                    ]
                   : null,
             ),
             child: isSelected

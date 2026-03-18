@@ -76,36 +76,41 @@ class _StatsViewState extends State<StatsView> {
     final records = _getRecords(7);
     final routines = widget.routineRepo!.getAll();
 
-    return categories.map((cat) {
-      final catRoutineIds =
-          routines.where((r) => r.categoryId == cat.id).map((r) => r.id).toSet();
-      if (catRoutineIds.isEmpty) {
-        return CategoryStat(
-          categoryId: cat.id,
-          name: cat.name,
-          color: cat.color,
-          rate: 0,
-        );
-      }
-
-      int total = 0;
-      int done = 0;
-      for (final record in records) {
-        for (final rid in catRoutineIds) {
-          if (record.routineCompletions.containsKey(rid)) {
-            total++;
-            if (record.routineCompletions[rid]!) done++;
+    return categories
+        .map((cat) {
+          final catRoutineIds = routines
+              .where((r) => r.categoryId == cat.id)
+              .map((r) => r.id)
+              .toSet();
+          if (catRoutineIds.isEmpty) {
+            return CategoryStat(
+              categoryId: cat.id,
+              name: cat.name,
+              color: cat.color,
+              rate: 0,
+            );
           }
-        }
-      }
 
-      return CategoryStat(
-        categoryId: cat.id,
-        name: cat.name,
-        color: cat.color,
-        rate: total == 0 ? 0 : done / total,
-      );
-    }).where((s) => s.rate > 0 || true).toList();
+          int total = 0;
+          int done = 0;
+          for (final record in records) {
+            for (final rid in catRoutineIds) {
+              if (record.routineCompletions.containsKey(rid)) {
+                total++;
+                if (record.routineCompletions[rid]!) done++;
+              }
+            }
+          }
+
+          return CategoryStat(
+            categoryId: cat.id,
+            name: cat.name,
+            color: cat.color,
+            rate: total == 0 ? 0 : done / total,
+          );
+        })
+        .where((s) => s.rate > 0 || true)
+        .toList();
   }
 
   @override
@@ -147,10 +152,14 @@ class _StatsViewState extends State<StatsView> {
                   segments: const [
                     ButtonSegment(value: StatsPeriod.daily, label: Text('일별')),
                     ButtonSegment(value: StatsPeriod.weekly, label: Text('주별')),
-                    ButtonSegment(value: StatsPeriod.monthly, label: Text('월별')),
+                    ButtonSegment(
+                      value: StatsPeriod.monthly,
+                      label: Text('월별'),
+                    ),
                   ],
                   selected: {_period},
-                  onSelectionChanged: (set) => setState(() => _period = set.first),
+                  onSelectionChanged: (set) =>
+                      setState(() => _period = set.first),
                 ),
                 const SizedBox(height: 24),
 

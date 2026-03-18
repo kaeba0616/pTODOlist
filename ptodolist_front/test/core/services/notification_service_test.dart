@@ -12,7 +12,9 @@ void main() {
         routineCompletions: {'r-1': true, 'r-2': false, 'r-3': false},
       );
 
-      final incomplete = record.routineCompletions.values.where((v) => !v).length;
+      final incomplete = record.routineCompletions.values
+          .where((v) => !v)
+          .length;
       expect(incomplete, 2);
     });
 
@@ -22,14 +24,30 @@ void main() {
         routineCompletions: {'r-1': true, 'r-2': true},
       );
 
-      final incomplete = record.routineCompletions.values.where((v) => !v).length;
+      final incomplete = record.routineCompletions.values
+          .where((v) => !v)
+          .length;
       expect(incomplete, 0);
     });
 
     test('미완료 할 일도 카운트된다', () {
       final tasks = [
-        AdditionalTask(id: 't-1', title: '할일1', categoryId: 'c', createdAt: DateTime.now(), targetDate: '2026-03-17', isCompleted: false),
-        AdditionalTask(id: 't-2', title: '할일2', categoryId: 'c', createdAt: DateTime.now(), targetDate: '2026-03-17', isCompleted: true),
+        AdditionalTask(
+          id: 't-1',
+          title: '할일1',
+          categoryId: 'c',
+          createdAt: DateTime.now(),
+          targetDate: '2026-03-17',
+          isCompleted: false,
+        ),
+        AdditionalTask(
+          id: 't-2',
+          title: '할일2',
+          categoryId: 'c',
+          createdAt: DateTime.now(),
+          targetDate: '2026-03-17',
+          isCompleted: true,
+        ),
       ];
 
       final taskIncomplete = tasks.where((t) => !t.isCompleted).length;
@@ -42,10 +60,19 @@ void main() {
         routineCompletions: {'r-1': false},
       );
       final tasks = [
-        AdditionalTask(id: 't-1', title: '할일', categoryId: 'c', createdAt: DateTime.now(), targetDate: '2026-03-17', isCompleted: false),
+        AdditionalTask(
+          id: 't-1',
+          title: '할일',
+          categoryId: 'c',
+          createdAt: DateTime.now(),
+          targetDate: '2026-03-17',
+          isCompleted: false,
+        ),
       ];
 
-      final routineIncomplete = record.routineCompletions.values.where((v) => !v).length;
+      final routineIncomplete = record.routineCompletions.values
+          .where((v) => !v)
+          .length;
       final taskIncomplete = tasks.where((t) => !t.isCompleted).length;
       final total = routineIncomplete + taskIncomplete;
 

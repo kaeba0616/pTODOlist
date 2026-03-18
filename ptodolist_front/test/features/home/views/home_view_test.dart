@@ -92,13 +92,15 @@ void main() {
         emptyTaskRepo.delete(t.id);
       }
 
-      await tester.pumpWidget(MaterialApp(
-        home: HomeView(
-          categoryRepo: catRepo,
-          routineRepo: emptyRoutineRepo,
-          taskRepo: emptyTaskRepo,
+      await tester.pumpWidget(
+        MaterialApp(
+          home: HomeView(
+            categoryRepo: catRepo,
+            routineRepo: emptyRoutineRepo,
+            taskRepo: emptyTaskRepo,
+          ),
         ),
-      ));
+      );
 
       expect(find.text('아직 할 일이 없어요'), findsOneWidget);
     });

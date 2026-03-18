@@ -28,7 +28,10 @@ class CompletionChart extends StatelessWidget {
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 return BarTooltipItem(
                   '${rod.toY.round()}%',
-                  const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 );
               },
             ),
@@ -59,20 +62,25 @@ class CompletionChart extends StatelessWidget {
                 reservedSize: 40,
                 getTitlesWidget: (value, meta) {
                   if (value % 25 != 0) return const SizedBox.shrink();
-                  return Text('${value.toInt()}%', style: const TextStyle(fontSize: 10));
+                  return Text(
+                    '${value.toInt()}%',
+                    style: const TextStyle(fontSize: 10),
+                  );
                 },
               ),
             ),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
           ),
           gridData: FlGridData(
             show: true,
             horizontalInterval: 25,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: Colors.grey[200]!,
-              strokeWidth: 1,
-            ),
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: Colors.grey[200]!, strokeWidth: 1),
             drawVerticalLine: false,
           ),
           borderData: FlBorderData(show: false),
@@ -85,7 +93,9 @@ class CompletionChart extends StatelessWidget {
                   toY: rate,
                   color: _barColor(entry.value.rate),
                   width: 20,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(4),
+                  ),
                 ),
               ],
             );

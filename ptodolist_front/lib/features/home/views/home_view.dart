@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
 import 'package:ptodolist/features/routine/models/routine.dart';
@@ -43,15 +44,14 @@ class _HomeViewState extends State<HomeView> {
 
   void _initDailyRecord() {
     if (widget.dailyRecordRepo != null) {
-      _dailyRecord = widget.dailyRecordRepo!
-          .getOrCreateToday(widget.routineRepo.getActive());
+      _dailyRecord = widget.dailyRecordRepo!.getOrCreateToday(
+        widget.routineRepo.getActive(),
+      );
     } else {
       final activeRoutines = widget.routineRepo.getActive();
       _dailyRecord = DailyRecord(
         date: _today,
-        routineCompletions: {
-          for (final r in activeRoutines) r.id: false,
-        },
+        routineCompletions: {for (final r in activeRoutines) r.id: false},
       );
     }
   }
@@ -78,13 +78,6 @@ class _HomeViewState extends State<HomeView> {
     return routinesDone + tasksDone;
   }
 
-  Color _parseColor(String hex) {
-    final buffer = StringBuffer();
-    if (hex.length == 7) buffer.write('FF');
-    buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
-  }
-
   Category? _getCategoryFor(String categoryId) {
     return widget.categoryRepo.getById(categoryId);
   }
@@ -107,10 +100,7 @@ class _HomeViewState extends State<HomeView> {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => RoutineFormView(
-        routine: routine,
-        categories: categories,
-      ),
+      builder: (_) => RoutineFormView(routine: routine, categories: categories),
     );
     if (result != null && mounted) {
       setState(() {
@@ -122,11 +112,11 @@ class _HomeViewState extends State<HomeView> {
         );
         widget.routineRepo.update(updated);
         if (!updated.isActive) {
-          final completions =
-              Map<String, bool>.from(_dailyRecord.routineCompletions);
+          final completions = Map<String, bool>.from(
+            _dailyRecord.routineCompletions,
+          );
           completions.remove(updated.id);
-          _dailyRecord =
-              _dailyRecord.copyWith(routineCompletions: completions);
+          _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
           widget.dailyRecordRepo?.save(_dailyRecord);
         }
       });
@@ -138,10 +128,7 @@ class _HomeViewState extends State<HomeView> {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => TaskFormView(
-        task: task,
-        categories: categories,
-      ),
+      builder: (_) => TaskFormView(task: task, categories: categories),
     );
     if (result != null && mounted) {
       setState(() {
@@ -177,7 +164,9 @@ class _HomeViewState extends State<HomeView> {
             categoryId: result['categoryId'],
             subtasks: List<String>.from(result['subtasks'] ?? []),
           );
-          final updated = Map<String, bool>.from(_dailyRecord.routineCompletions);
+          final updated = Map<String, bool>.from(
+            _dailyRecord.routineCompletions,
+          );
           updated[id] = false;
           _dailyRecord = _dailyRecord.copyWith(routineCompletions: updated);
         });
@@ -202,12 +191,13 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = DateFormat('yyyy년 M월 d일 EEEE', 'ko_KR').format(DateTime.now());
+    final dateStr = DateFormat(
+      'yyyy년 M월 d일 EEEE',
+      'ko_KR',
+    ).format(DateTime.now());
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('오늘'),
-      ),
+      appBar: AppBar(title: const Text('오늘')),
       body: _totalCount == 0
           ? Center(
               child: Column(
@@ -231,9 +221,9 @@ class _HomeViewState extends State<HomeView> {
                 Center(
                   child: Text(
                     dateStr,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.grey[700],
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: Colors.grey[700]),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -252,8 +242,8 @@ class _HomeViewState extends State<HomeView> {
                   Text(
                     '오늘의 루틴',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ..._activeRoutines.map((routine) {
@@ -270,10 +260,12 @@ class _HomeViewState extends State<HomeView> {
                         setState(() {
                           widget.routineRepo.delete(routine.id);
                           final updated = Map<String, bool>.from(
-                              _dailyRecord.routineCompletions);
+                            _dailyRecord.routineCompletions,
+                          );
                           updated.remove(routine.id);
                           _dailyRecord = _dailyRecord.copyWith(
-                              routineCompletions: updated);
+                            routineCompletions: updated,
+                          );
                         });
                       },
                     );
@@ -286,8 +278,8 @@ class _HomeViewState extends State<HomeView> {
                   Text(
                     '추가 할 일',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ..._todayTasks.map((task) {
@@ -363,17 +355,14 @@ class _HomeViewState extends State<HomeView> {
                     padding: const EdgeInsets.only(right: 8),
                     child: Text(
                       '${subtasks.length}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ),
                 Container(
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: _parseColor(categoryColor),
+                    color: parseHexColor(categoryColor),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -391,17 +380,23 @@ class _HomeViewState extends State<HomeView> {
                     padding: const EdgeInsets.only(bottom: 2),
                     child: Row(
                       children: [
-                        Icon(Icons.subdirectory_arrow_right,
-                            size: 14, color: Colors.grey[400]),
+                        Icon(
+                          Icons.subdirectory_arrow_right,
+                          size: 14,
+                          color: Colors.grey[400],
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             sub,
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDone ? Colors.grey[400] : Colors.grey[600],
-                              decoration:
-                                  isDone ? TextDecoration.lineThrough : null,
+                              color: isDone
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
+                              decoration: isDone
+                                  ? TextDecoration.lineThrough
+                                  : null,
                             ),
                           ),
                         ),

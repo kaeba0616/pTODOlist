@@ -12,9 +12,7 @@ void main() {
     });
 
     Widget buildTestWidget() {
-      return MaterialApp(
-        home: CategoryListView(repository: mockRepo),
-      );
+      return MaterialApp(home: CategoryListView(repository: mockRepo));
     }
 
     testWidgets('기본 카테고리 5개가 표시된다', (tester) async {

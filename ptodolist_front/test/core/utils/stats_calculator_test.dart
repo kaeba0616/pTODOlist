@@ -7,13 +7,21 @@ import 'package:ptodolist/features/task/models/additional_task.dart';
 void main() {
   final dateFmt = DateFormat('yyyy-MM-dd');
   final today = dateFmt.format(DateTime.now());
-  final yesterday = dateFmt.format(DateTime.now().subtract(const Duration(days: 1)));
+  final yesterday = dateFmt.format(
+    DateTime.now().subtract(const Duration(days: 1)),
+  );
 
   group('StatsCalculator.dailyStats', () {
     test('레코드가 있는 날의 달성률을 계산한다', () {
       final records = [
-        DailyRecord(date: today, routineCompletions: {'r-1': true, 'r-2': false}),
-        DailyRecord(date: yesterday, routineCompletions: {'r-1': true, 'r-2': true}),
+        DailyRecord(
+          date: today,
+          routineCompletions: {'r-1': true, 'r-2': false},
+        ),
+        DailyRecord(
+          date: yesterday,
+          routineCompletions: {'r-1': true, 'r-2': true},
+        ),
       ];
 
       final stats = StatsCalculator.dailyStats(
@@ -28,11 +36,7 @@ void main() {
     });
 
     test('레코드가 없는 날은 0%이다', () {
-      final stats = StatsCalculator.dailyStats(
-        records: [],
-        tasks: [],
-        days: 3,
-      );
+      final stats = StatsCalculator.dailyStats(records: [], tasks: [], days: 3);
 
       expect(stats.length, 3);
       expect(stats.every((s) => s.rate == 0.0), true);
@@ -44,12 +48,20 @@ void main() {
       ];
       final tasks = [
         AdditionalTask(
-          id: 't-1', title: '할일', categoryId: 'c',
-          createdAt: DateTime.now(), targetDate: today, isCompleted: true,
+          id: 't-1',
+          title: '할일',
+          categoryId: 'c',
+          createdAt: DateTime.now(),
+          targetDate: today,
+          isCompleted: true,
         ),
         AdditionalTask(
-          id: 't-2', title: '할일2', categoryId: 'c',
-          createdAt: DateTime.now(), targetDate: today, isCompleted: false,
+          id: 't-2',
+          title: '할일2',
+          categoryId: 'c',
+          createdAt: DateTime.now(),
+          targetDate: today,
+          isCompleted: false,
         ),
       ];
 

@@ -27,10 +27,7 @@ class AppTheme {
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: const Color(0xFFFAFAFA),
-      appBarTheme: const AppBarTheme(
-        centerTitle: true,
-        elevation: 0,
-      ),
+      appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
       navigationBarTheme: NavigationBarThemeData(
         height: 80,
         indicatorColor: primaryContainer,
@@ -42,10 +39,7 @@ class AppTheme {
               color: primary,
             );
           }
-          return TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          );
+          return TextStyle(fontSize: 12, color: Colors.grey[600]);
         }),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -55,9 +49,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -69,23 +61,14 @@ class AppTheme {
         seedColor: primary,
         brightness: Brightness.dark,
       ),
-      appBarTheme: const AppBarTheme(
-        centerTitle: true,
-        elevation: 0,
-      ),
+      appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
       navigationBarTheme: NavigationBarThemeData(
         height: 80,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            );
+            return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600);
           }
-          return TextStyle(
-            fontSize: 12,
-            color: Colors.grey[400],
-          );
+          return TextStyle(fontSize: 12, color: Colors.grey[400]);
         }),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -95,9 +78,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

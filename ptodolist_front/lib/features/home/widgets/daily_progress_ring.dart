@@ -42,8 +42,8 @@ class DailyProgressRing extends StatelessWidget {
               child: Text(
                 '$_percent%',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -51,9 +51,9 @@ class DailyProgressRing extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           '$completed/$total 완료',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
         ),
       ],
     );

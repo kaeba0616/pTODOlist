@@ -15,7 +15,12 @@ void main() {
     late DataCleanupService service;
 
     final testRoutines = [
-      Routine(id: 'r-1', title: '운동', categoryId: 'cat-1', createdAt: DateTime(2026, 1, 1)),
+      Routine(
+        id: 'r-1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      ),
     ];
 
     setUp(() {
@@ -37,11 +42,12 @@ void main() {
 
     test('보관기간 초과 레코드가 삭제된다', () {
       // 오래된 레코드 수동 생성
-      final oldDate = dateFmt.format(DateTime.now().subtract(const Duration(days: 200)));
-      dailyRecordRepo.save(DailyRecord(
-        date: oldDate,
-        routineCompletions: {'r-1': true},
-      ));
+      final oldDate = dateFmt.format(
+        DateTime.now().subtract(const Duration(days: 200)),
+      );
+      dailyRecordRepo.save(
+        DailyRecord(date: oldDate, routineCompletions: {'r-1': true}),
+      );
 
       // 오늘 레코드도 생성
       dailyRecordRepo.getOrCreateToday(testRoutines);
@@ -55,11 +61,12 @@ void main() {
     });
 
     test('무제한(0) 설정이면 삭제하지 않는다', () {
-      final oldDate = dateFmt.format(DateTime.now().subtract(const Duration(days: 500)));
-      dailyRecordRepo.save(DailyRecord(
-        date: oldDate,
-        routineCompletions: {'r-1': true},
-      ));
+      final oldDate = dateFmt.format(
+        DateTime.now().subtract(const Duration(days: 500)),
+      );
+      dailyRecordRepo.save(
+        DailyRecord(date: oldDate, routineCompletions: {'r-1': true}),
+      );
 
       // retentionMonths = 0 (무제한) Mock 설정
       // Mock repo는 기본값 6개월이므로, 직접 0으로 만들 수 없음

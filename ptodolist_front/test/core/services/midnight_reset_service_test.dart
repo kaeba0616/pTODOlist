@@ -40,7 +40,10 @@ void main() {
     test('이미 레코드가 있으면 기존 것을 반환한다', () {
       final first = service.getCurrentRecord();
       final updated = dailyRecordRepo.toggleRoutineCompletion(
-          today, 'r-1', routineRepo.getActive());
+        today,
+        'r-1',
+        routineRepo.getActive(),
+      );
 
       final second = service.getCurrentRecord();
       expect(second.isRoutineCompleted('r-1'), true);

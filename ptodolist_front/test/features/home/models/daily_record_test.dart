@@ -42,17 +42,19 @@ void main() {
     test('달성률을 계산한다', () {
       final record = DailyRecord(
         date: '2026-03-17',
-        routineCompletions: {'r-1': true, 'r-2': true, 'r-3': false, 'r-4': false},
+        routineCompletions: {
+          'r-1': true,
+          'r-2': true,
+          'r-3': false,
+          'r-4': false,
+        },
       );
 
       expect(record.completionRate, 0.5);
     });
 
     test('빈 레코드의 달성률은 0이다', () {
-      const record = DailyRecord(
-        date: '2026-03-17',
-        routineCompletions: {},
-      );
+      const record = DailyRecord(date: '2026-03-17', routineCompletions: {});
 
       expect(record.completionRate, 0.0);
     });

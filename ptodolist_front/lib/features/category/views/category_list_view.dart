@@ -30,10 +30,7 @@ class _CategoryListViewState extends State<CategoryListView> {
             category.copyWith(name: result['name']!, color: result['color']!),
           );
         } else {
-          widget.repository.add(
-            name: result['name']!,
-            color: result['color']!,
-          );
+          widget.repository.add(name: result['name']!, color: result['color']!);
         }
       });
     }
@@ -42,9 +39,7 @@ class _CategoryListViewState extends State<CategoryListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('카테고리 관리'),
-      ),
+      appBar: AppBar(title: const Text('카테고리 관리')),
       body: Column(
         children: [
           Expanded(

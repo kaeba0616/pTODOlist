@@ -39,10 +39,14 @@ final appRouter = GoRouter(
                     : RoutineRepository(box: Hive.box<Routine>('routines'));
                 final taskRepo = useMock
                     ? TaskRepository(useMock: true)
-                    : TaskRepository(box: Hive.box<AdditionalTask>('additionalTasks'));
+                    : TaskRepository(
+                        box: Hive.box<AdditionalTask>('additionalTasks'),
+                      );
                 final dailyRecordRepo = useMock
                     ? DailyRecordRepository(useMock: true)
-                    : DailyRecordRepository(box: Hive.box<DailyRecord>('dailyRecords'));
+                    : DailyRecordRepository(
+                        box: Hive.box<DailyRecord>('dailyRecords'),
+                      );
                 return HomeView(
                   categoryRepo: catRepo,
                   routineRepo: routineRepo,
@@ -68,10 +72,18 @@ final appRouter = GoRouter(
                   );
                 }
                 return StatsView(
-                  dailyRecordRepo: DailyRecordRepository(box: Hive.box<DailyRecord>('dailyRecords')),
-                  routineRepo: RoutineRepository(box: Hive.box<Routine>('routines')),
-                  taskRepo: TaskRepository(box: Hive.box<AdditionalTask>('additionalTasks')),
-                  categoryRepo: CategoryRepository(box: Hive.box<Category>('categories')),
+                  dailyRecordRepo: DailyRecordRepository(
+                    box: Hive.box<DailyRecord>('dailyRecords'),
+                  ),
+                  routineRepo: RoutineRepository(
+                    box: Hive.box<Routine>('routines'),
+                  ),
+                  taskRepo: TaskRepository(
+                    box: Hive.box<AdditionalTask>('additionalTasks'),
+                  ),
+                  categoryRepo: CategoryRepository(
+                    box: Hive.box<Category>('categories'),
+                  ),
                 );
               },
             ),
@@ -86,10 +98,13 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'categories',
                   builder: (context, state) {
-                    const useMock = String.fromEnvironment('USE_MOCK') == 'true';
+                    const useMock =
+                        String.fromEnvironment('USE_MOCK') == 'true';
                     final repo = useMock
                         ? CategoryRepository(useMock: true)
-                        : CategoryRepository(box: Hive.box<Category>('categories'));
+                        : CategoryRepository(
+                            box: Hive.box<Category>('categories'),
+                          );
                     return CategoryListView(repository: repo);
                   },
                 ),
@@ -103,10 +118,7 @@ final appRouter = GoRouter(
 );
 
 class ScaffoldWithNavBar extends StatelessWidget {
-  const ScaffoldWithNavBar({
-    required this.navigationShell,
-    super.key,
-  });
+  const ScaffoldWithNavBar({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 

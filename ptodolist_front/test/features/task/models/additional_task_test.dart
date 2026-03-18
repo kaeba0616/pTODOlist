@@ -33,9 +33,98 @@ void main() {
     });
 
     test('equality', () {
-      final a = AdditionalTask(id: '1', title: '마트', categoryId: 'cat-4', createdAt: DateTime(2026, 3, 17), targetDate: '2026-03-17');
-      final b = AdditionalTask(id: '1', title: '마트', categoryId: 'cat-4', createdAt: DateTime(2026, 3, 17), targetDate: '2026-03-17');
+      final a = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+      );
+      final b = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+      );
 
+      expect(a, equals(b));
+    });
+
+    test('subtasks 기본값은 빈 리스트이다', () {
+      final task = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+      );
+      expect(task.subtasks, isEmpty);
+    });
+
+    test('subtasks와 함께 생성된다', () {
+      final task = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+        subtasks: ['우유', '계란'],
+      );
+      expect(task.subtasks, ['우유', '계란']);
+    });
+
+    test('copyWith으로 subtasks를 수정한다', () {
+      final original = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+        subtasks: ['우유'],
+      );
+      final updated = original.copyWith(subtasks: ['우유', '계란']);
+      expect(updated.subtasks, ['우유', '계란']);
+      expect(original.subtasks, ['우유']);
+    });
+
+    test('subtasks가 다르면 동등하지 않다', () {
+      final a = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+        subtasks: ['우유'],
+      );
+      final b = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+        subtasks: ['계란'],
+      );
+      expect(a, isNot(equals(b)));
+    });
+
+    test('subtasks가 같으면 동등하다', () {
+      final a = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+        subtasks: ['우유', '계란'],
+      );
+      final b = AdditionalTask(
+        id: '1',
+        title: '마트',
+        categoryId: 'cat-4',
+        createdAt: DateTime(2026, 3, 17),
+        targetDate: '2026-03-17',
+        subtasks: ['우유', '계란'],
+      );
       expect(a, equals(b));
     });
   });

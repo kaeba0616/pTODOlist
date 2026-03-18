@@ -13,7 +13,9 @@ class NotificationService {
 
   static Future<void> init() async {
     if (kIsWeb) return; // 웹에서는 알림 미지원
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -28,8 +30,10 @@ class NotificationService {
 
   static Future<void> requestPermission() async {
     if (kIsWeb) return;
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await android?.requestNotificationsPermission();
   }
 
@@ -39,10 +43,8 @@ class NotificationService {
     required List<AdditionalTask> todayTasks,
   }) async {
     if (kIsWeb) return;
-    final routineIncomplete = dailyRecord?.routineCompletions.values
-            .where((v) => !v)
-            .length ??
-        0;
+    final routineIncomplete =
+        dailyRecord?.routineCompletions.values.where((v) => !v).length ?? 0;
     final taskIncomplete = todayTasks.where((t) => !t.isCompleted).length;
     final totalIncomplete = routineIncomplete + taskIncomplete;
 

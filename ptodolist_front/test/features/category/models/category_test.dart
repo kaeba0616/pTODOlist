@@ -4,11 +4,7 @@ import 'package:ptodolist/features/category/models/category.dart';
 void main() {
   group('Category', () {
     test('생성된다', () {
-      const category = Category(
-        id: '1',
-        name: '운동',
-        color: '#EF4444',
-      );
+      const category = Category(id: '1', name: '운동', color: '#EF4444');
 
       expect(category.id, '1');
       expect(category.name, '운동');

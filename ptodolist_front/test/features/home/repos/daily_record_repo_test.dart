@@ -7,9 +7,24 @@ void main() {
   final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   final testRoutines = [
-    Routine(id: 'r-1', title: '운동', categoryId: 'cat-1', createdAt: DateTime(2026, 1, 1)),
-    Routine(id: 'r-2', title: '공부', categoryId: 'cat-2', createdAt: DateTime(2026, 1, 1)),
-    Routine(id: 'r-3', title: '독서', categoryId: 'cat-2', createdAt: DateTime(2026, 1, 1)),
+    Routine(
+      id: 'r-1',
+      title: '운동',
+      categoryId: 'cat-1',
+      createdAt: DateTime(2026, 1, 1),
+    ),
+    Routine(
+      id: 'r-2',
+      title: '공부',
+      categoryId: 'cat-2',
+      createdAt: DateTime(2026, 1, 1),
+    ),
+    Routine(
+      id: 'r-3',
+      title: '독서',
+      categoryId: 'cat-2',
+      createdAt: DateTime(2026, 1, 1),
+    ),
   ];
 
   group('DailyRecordRepository (Mock)', () {
@@ -61,7 +76,9 @@ void main() {
       repo.getOrCreateToday(testRoutines);
 
       // 미래 기준으로 삭제하면 오늘 레코드가 삭제됨
-      final deleted = repo.deleteOlderThan(DateTime.now().add(const Duration(days: 1)));
+      final deleted = repo.deleteOlderThan(
+        DateTime.now().add(const Duration(days: 1)),
+      );
       expect(deleted, 1);
 
       expect(repo.get(today), isNull);
@@ -71,7 +88,9 @@ void main() {
       repo.getOrCreateToday(testRoutines);
 
       // 과거 기준으로 삭제하면 오늘 레코드는 유지
-      final deleted = repo.deleteOlderThan(DateTime.now().subtract(const Duration(days: 1)));
+      final deleted = repo.deleteOlderThan(
+        DateTime.now().subtract(const Duration(days: 1)),
+      );
       expect(deleted, 0);
 
       expect(repo.get(today), isNotNull);
