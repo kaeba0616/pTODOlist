@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | Phase 1 | Core Foundation | 루틴+할일 관리, 자정 리셋 | F0~F5 | `[status: done]` |
 | Phase 2 | Engagement | 통계, 스마트 알림 | F6~F7 | `[status: done]` |
-| Phase 3 | Polish | 설정, 데이터 관리, 테마 | F8 | `[status: planned]` |
+| Phase 3 | Polish | 설정, 데이터 관리, 테마 | F8 | `[status: done]` |
 
 ---
 
@@ -42,14 +42,14 @@
 
 ---
 
-## Phase 3: Polish `[status: planned]`
+## Phase 3: Polish `[status: done]`
 
 **목표**: 사용자 설정 커스터마이징 및 데이터 관리
 
 **Features**:
 | ID | 기능 | 의존성 | 상태 |
 |---|---|---|---|
-| F8 | 설정 & 데이터 관리 | F7 | `[status: todo]` |
+| F8 | 설정 & 데이터 관리 | F7 | `[status: completed]` |
 
 **마일스톤**: 알림/테마/보관기간 설정 가능, 오래된 데이터 자동 정리
 
