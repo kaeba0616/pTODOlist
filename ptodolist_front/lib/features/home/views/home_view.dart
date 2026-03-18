@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ptodolist/core/utils/color_utils.dart';
+import 'package:ptodolist/core/utils/streak_calculator.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
 import 'package:ptodolist/features/routine/models/routine.dart';
@@ -83,6 +84,22 @@ class _HomeViewState extends State<HomeView> {
     final routinesDone = _dailyRecord.completedCount;
     final tasksDone = _todayTasks.where((t) => t.isCompleted).length;
     return routinesDone + tasksDone;
+  }
+
+  int _getStreak(Routine routine) {
+    if (widget.dailyRecordRepo == null) return 0;
+    final records = widget.dailyRecordRepo!.getRecordsInRange(
+      DateFormat(
+        'yyyy-MM-dd',
+      ).format(DateTime.now().subtract(const Duration(days: 365))),
+      _today,
+    );
+    return StreakCalculator.currentStreak(
+      routineId: routine.id,
+      records: records,
+      today: _today,
+      activeDays: routine.activeDays,
+    );
   }
 
   Category? _getCategoryFor(String categoryId) {
@@ -266,6 +283,7 @@ class _HomeViewState extends State<HomeView> {
                   ..._activeRoutines.map((routine) {
                     final isDone = _dailyRecord.isRoutineCompleted(routine.id);
                     final category = _getCategoryFor(routine.categoryId);
+                    final streak = _getStreak(routine);
                     return _buildCheckTile(
                       title: routine.title,
                       isDone: isDone,
@@ -274,6 +292,7 @@ class _HomeViewState extends State<HomeView> {
                       priority: routine.priority,
                       iconCodePoint: routine.iconCodePoint,
                       activeDays: routine.activeDays,
+                      streak: streak,
                       onToggle: () => _toggleRoutine(routine.id),
                       onTap: () => _editRoutine(routine),
                       onDelete: () {
@@ -349,6 +368,7 @@ class _HomeViewState extends State<HomeView> {
     int? iconCodePoint,
     List<int> activeDays = const [],
     int overdueDays = 0,
+    int streak = 0,
   }) {
     const dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
     final daysText = activeDays.isNotEmpty
@@ -422,6 +442,28 @@ class _HomeViewState extends State<HomeView> {
                         color: Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                  ),
+                if (streak >= 2)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.local_fire_department,
+                          color: Colors.orange,
+                          size: 16,
+                        ),
+                        Text(
+                          '$streak',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 if (priority == 2)
