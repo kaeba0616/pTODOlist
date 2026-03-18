@@ -7,7 +7,7 @@
 | Phase 1 | Core Foundation | 루틴+할일 관리, 자정 리셋 | F0~F5 | `[status: done]` |
 | Phase 2 | Engagement | 통계, 스마트 알림 | F6~F7 | `[status: done]` |
 | Phase 3 | Polish | 설정, 데이터 관리, 테마 | F8 | `[status: done]` |
-| Phase 4 | Enhancement | 요일별 루틴, 연속 달성, 마감일 | F9~F12 | `[status: in-progress]` |
+| Phase 4 | Enhancement | 요일별 루틴, 연속 달성, 마감일 | F9~F12 | `[status: done]` |
 
 ---
 
@@ -56,17 +56,17 @@
 
 ---
 
-## Phase 4: Enhancement `[status: in-progress]`
+## Phase 4: Enhancement `[status: done]`
 
 **목표**: 기술 부채 정리 + 요일별 루틴, 연속 달성, 할 일 마감일로 사용성 향상
 
 **Features**:
 | ID | 기능 | 의존성 | 상태 |
 |---|---|---|---|
-| F9 | Subtask & Edit Cleanup | - | `[status: in-progress]` |
-| F10 | 요일별 루틴 | F9 | `[status: todo]` |
-| F11 | 연속 달성 추적 (Streak) | F10 | `[status: todo]` |
-| F12 | 할 일 마감일 | F9 | `[status: todo]` |
+| F9 | Subtask & Edit Cleanup | - | `[status: completed]` |
+| F10 | 요일별 루틴 | F9 | `[status: completed]` |
+| F11 | 연속 달성 추적 (Streak) | F10 | `[status: completed]` |
+| F12 | 할 일 마감일 | F9 | `[status: completed]` |
 
 **마일스톤**: 요일별 루틴 필터링 + 연속 달성 뱃지 + overdue 할 일 표시
 
