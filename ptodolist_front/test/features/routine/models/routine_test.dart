@@ -201,5 +201,66 @@ void main() {
       expect(updated.iconCodePoint, 0xe613);
       expect(original.iconCodePoint, isNull);
     });
+
+    test('activeDays 기본값은 빈 리스트이다 (=매일)', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      expect(routine.activeDays, isEmpty);
+    });
+
+    test('activeDays로 특정 요일을 지정한다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        activeDays: [1, 3, 5], // 월, 수, 금
+      );
+      expect(routine.activeDays, [1, 3, 5]);
+    });
+
+    test('isActiveOnDay: 빈 activeDays는 모든 요일에 활성이다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+      );
+      for (int day = 1; day <= 7; day++) {
+        expect(routine.isActiveOnDay(day), true);
+      }
+    });
+
+    test('isActiveOnDay: 특정 요일만 활성이다', () {
+      final routine = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        activeDays: [1, 3, 5],
+      );
+      expect(routine.isActiveOnDay(1), true); // 월
+      expect(routine.isActiveOnDay(2), false); // 화
+      expect(routine.isActiveOnDay(3), true); // 수
+      expect(routine.isActiveOnDay(5), true); // 금
+      expect(routine.isActiveOnDay(7), false); // 일
+    });
+
+    test('copyWith으로 activeDays를 변경한다', () {
+      final original = Routine(
+        id: '1',
+        title: '운동',
+        categoryId: 'cat-1',
+        createdAt: DateTime(2026, 1, 1),
+        activeDays: [1, 3, 5],
+      );
+      final updated = original.copyWith(activeDays: [2, 4]);
+      expect(updated.activeDays, [2, 4]);
+      expect(original.activeDays, [1, 3, 5]);
+    });
   });
 }

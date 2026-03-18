@@ -8,6 +8,7 @@ class Routine {
   final List<String> subtasks;
   final int priority; // 0=낮음, 1=보통, 2=높음
   final int? iconCodePoint; // Material Icon codePoint, null=기본
+  final List<int> activeDays; // 1=월~7=일, []=매일
 
   const Routine({
     required this.id,
@@ -19,7 +20,14 @@ class Routine {
     this.subtasks = const [],
     this.priority = 1,
     this.iconCodePoint,
+    this.activeDays = const [],
   });
+
+  /// 해당 요일에 활성인지 확인 (weekday: 1=월~7=일)
+  bool isActiveOnDay(int weekday) {
+    if (activeDays.isEmpty) return true; // 매일
+    return activeDays.contains(weekday);
+  }
 
   Routine copyWith({
     String? id,
@@ -31,6 +39,7 @@ class Routine {
     List<String>? subtasks,
     int? priority,
     int? Function()? iconCodePoint,
+    List<int>? activeDays,
   }) {
     return Routine(
       id: id ?? this.id,
@@ -44,6 +53,7 @@ class Routine {
       iconCodePoint: iconCodePoint != null
           ? iconCodePoint()
           : this.iconCodePoint,
+      activeDays: activeDays ?? this.activeDays,
     );
   }
 
@@ -63,6 +73,10 @@ class Routine {
     for (int i = 0; i < subtasks.length; i++) {
       if (subtasks[i] != other.subtasks[i]) return false;
     }
+    if (activeDays.length != other.activeDays.length) return false;
+    for (int i = 0; i < activeDays.length; i++) {
+      if (activeDays[i] != other.activeDays[i]) return false;
+    }
     return true;
   }
 
@@ -76,5 +90,6 @@ class Routine {
     priority,
     iconCodePoint,
     Object.hashAll(subtasks),
+    Object.hashAll(activeDays),
   );
 }

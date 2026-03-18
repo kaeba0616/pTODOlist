@@ -23,13 +23,16 @@ class RoutineAdapter extends TypeAdapter<Routine> {
           : const [],
       priority: fields.containsKey(7) ? fields[7] as int : 1,
       iconCodePoint: fields.containsKey(8) ? fields[8] as int? : null,
+      activeDays: fields.containsKey(9)
+          ? List<int>.from(fields[9] as List)
+          : const [],
     );
   }
 
   @override
   void write(BinaryWriter writer, Routine obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,6 +50,8 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       ..writeByte(7)
       ..write(obj.priority)
       ..writeByte(8)
-      ..write(obj.iconCodePoint);
+      ..write(obj.iconCodePoint)
+      ..writeByte(9)
+      ..write(obj.activeDays);
   }
 }

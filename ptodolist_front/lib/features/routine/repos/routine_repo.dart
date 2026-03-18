@@ -21,6 +21,10 @@ class RoutineRepository {
     return getAll().where((r) => r.isActive).toList();
   }
 
+  List<Routine> getActiveForDay(int weekday) {
+    return getActive().where((r) => r.isActiveOnDay(weekday)).toList();
+  }
+
   Routine? getById(String id) {
     if (useMock) {
       try {
@@ -38,6 +42,7 @@ class RoutineRepository {
     List<String> subtasks = const [],
     int priority = 1,
     int? iconCodePoint,
+    List<int> activeDays = const [],
   }) {
     final id = _uuid.v4();
     final routine = Routine(
@@ -49,6 +54,7 @@ class RoutineRepository {
       subtasks: subtasks,
       priority: priority,
       iconCodePoint: iconCodePoint,
+      activeDays: activeDays,
     );
     if (useMock) {
       _mockData.add(routine);

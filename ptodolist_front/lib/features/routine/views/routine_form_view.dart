@@ -21,9 +21,13 @@ class _RoutineFormViewState extends State<RoutineFormView> {
   late List<String> _subtasks;
   late int _priority;
   late int? _iconCodePoint;
+  late Set<int> _activeDays; // 1=월~7=일
   final _subtaskController = TextEditingController();
 
+  static const _dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+
   bool get _isEditing => widget.routine != null;
+  bool get _isEveryDay => _activeDays.isEmpty || _activeDays.length == 7;
 
   @override
   void initState() {
@@ -36,6 +40,8 @@ class _RoutineFormViewState extends State<RoutineFormView> {
     _subtasks = List.from(widget.routine?.subtasks ?? []);
     _priority = widget.routine?.priority ?? 1;
     _iconCodePoint = widget.routine?.iconCodePoint;
+    final days = widget.routine?.activeDays ?? [];
+    _activeDays = days.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : Set.from(days);
   }
 
   @override
@@ -191,6 +197,34 @@ class _RoutineFormViewState extends State<RoutineFormView> {
                 setState(() => _priority = values.first);
               },
             ),
+            const SizedBox(height: 20),
+            Text(
+              '활성 요일',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              children: List.generate(7, (index) {
+                final day = index + 1; // 1=월 ~ 7=일
+                final isSelected = _activeDays.contains(day);
+                return FilterChip(
+                  label: Text(_dayLabels[index]),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _activeDays.add(day);
+                      } else if (_activeDays.length > 1) {
+                        _activeDays.remove(day);
+                      }
+                    });
+                  },
+                );
+              }),
+            ),
             if (_isEditing) ...[
               const SizedBox(height: 16),
               CheckboxListTile(
@@ -260,6 +294,9 @@ class _RoutineFormViewState extends State<RoutineFormView> {
                         'subtasks': _subtasks,
                         'priority': _priority,
                         'iconCodePoint': _iconCodePoint,
+                        'activeDays':
+                            _isEveryDay ? <int>[] : _activeDays.toList()
+                              ..sort(),
                       });
                     },
               child: const Text('저장'),

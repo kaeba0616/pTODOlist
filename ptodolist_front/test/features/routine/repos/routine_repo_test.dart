@@ -81,5 +81,19 @@ void main() {
       repo.update(original.copyWith(priority: 0));
       expect(repo.getById('r-1')!.priority, 0);
     });
+
+    test('getActiveForDay: 요일별 필터링', () {
+      // r-1을 월수금만으로 설정
+      final r1 = repo.getById('r-1')!;
+      repo.update(r1.copyWith(activeDays: [1, 3, 5]));
+
+      final monday = repo.getActiveForDay(1);
+      final tuesday = repo.getActiveForDay(2);
+
+      expect(monday.any((r) => r.id == 'r-1'), true);
+      expect(tuesday.any((r) => r.id == 'r-1'), false);
+      // activeDays 비어있는 루틴은 항상 포함
+      expect(tuesday.any((r) => r.id == 'r-2'), true);
+    });
   });
 }

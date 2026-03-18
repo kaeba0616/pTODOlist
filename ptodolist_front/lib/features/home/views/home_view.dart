@@ -43,12 +43,13 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _initDailyRecord() {
+    final todayRoutines = widget.routineRepo.getActiveForDay(
+      DateTime.now().weekday,
+    );
     if (widget.dailyRecordRepo != null) {
-      _dailyRecord = widget.dailyRecordRepo!.getOrCreateToday(
-        widget.routineRepo.getActive(),
-      );
+      _dailyRecord = widget.dailyRecordRepo!.getOrCreateToday(todayRoutines);
     } else {
-      final activeRoutines = widget.routineRepo.getActive();
+      final activeRoutines = todayRoutines;
       _dailyRecord = DailyRecord(
         date: _today,
         routineCompletions: {for (final r in activeRoutines) r.id: false},
@@ -56,7 +57,8 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  List<Routine> get _activeRoutines => widget.routineRepo.getActive();
+  List<Routine> get _activeRoutines =>
+      widget.routineRepo.getActiveForDay(DateTime.now().weekday);
 
   List<AdditionalTask> get _todayTasks {
     final tasks = widget.taskRepo.getByDate(_today);
@@ -111,6 +113,9 @@ class _HomeViewState extends State<HomeView> {
           subtasks: List<String>.from(result['subtasks'] ?? []),
           priority: result['priority'] ?? routine.priority,
           iconCodePoint: () => result['iconCodePoint'] as int?,
+          activeDays: List<int>.from(
+            result['activeDays'] ?? routine.activeDays,
+          ),
         );
         widget.routineRepo.update(updated);
         if (!updated.isActive) {
@@ -167,6 +172,7 @@ class _HomeViewState extends State<HomeView> {
             subtasks: List<String>.from(result['subtasks'] ?? []),
             priority: result['priority'] ?? 1,
             iconCodePoint: result['iconCodePoint'] as int?,
+            activeDays: List<int>.from(result['activeDays'] ?? []),
           );
           final updated = Map<String, bool>.from(
             _dailyRecord.routineCompletions,
@@ -260,6 +266,7 @@ class _HomeViewState extends State<HomeView> {
                       subtasks: routine.subtasks,
                       priority: routine.priority,
                       iconCodePoint: routine.iconCodePoint,
+                      activeDays: routine.activeDays,
                       onToggle: () => _toggleRoutine(routine.id),
                       onTap: () => _editRoutine(routine),
                       onDelete: () {
@@ -324,7 +331,12 @@ class _HomeViewState extends State<HomeView> {
     List<String> subtasks = const [],
     int priority = 1,
     int? iconCodePoint,
+    List<int> activeDays = const [],
   }) {
+    const dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+    final daysText = activeDays.isNotEmpty
+        ? ' (${activeDays.map((d) => dayLabels[d - 1]).join('')})'
+        : '';
     return Dismissible(
       key: Key(title + isDone.toString()),
       direction: DismissDirection.endToStart,
@@ -362,11 +374,22 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ],
             ),
-            title: Text(
-              title,
-              style: TextStyle(
-                decoration: isDone ? TextDecoration.lineThrough : null,
-                color: isDone ? Colors.grey : null,
+            title: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: title,
+                    style: TextStyle(
+                      decoration: isDone ? TextDecoration.lineThrough : null,
+                      color: isDone ? Colors.grey : null,
+                    ),
+                  ),
+                  if (daysText.isNotEmpty)
+                    TextSpan(
+                      text: daysText,
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                    ),
+                ],
               ),
             ),
             trailing: Row(
