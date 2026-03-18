@@ -69,5 +69,30 @@ void main() {
       repo.update(original.copyWith(subtasks: ['빵', '버터']));
       expect(repo.getById('t-1')!.subtasks, ['빵', '버터']);
     });
+
+    test('getOverdue: 미완료 + 지난 날짜만 반환한다', () {
+      // 기존 mock은 '2026-03-17', 오늘이 '2026-03-19'이면 overdue
+      final overdue = repo.getOverdue('2026-03-19');
+      // t-1(미완료), t-3(미완료)는 overdue, t-2(완료)는 아님
+      expect(overdue.length, 2);
+      expect(overdue.every((t) => !t.isCompleted), true);
+      expect(
+        overdue.every((t) => t.targetDate.compareTo('2026-03-19') < 0),
+        true,
+      );
+    });
+
+    test('getOverdue: 오늘 이후 날짜는 포함 안 됨', () {
+      repo.add(title: '미래 할일', categoryId: 'cat-1', targetDate: '2026-03-20');
+      final overdue = repo.getOverdue('2026-03-19');
+      expect(overdue.any((t) => t.title == '미래 할일'), false);
+    });
+
+    test('getTodayAndOverdue: 오늘 할일 + overdue 통합 반환', () {
+      repo.add(title: '오늘 할일', categoryId: 'cat-1', targetDate: '2026-03-19');
+      final tasks = repo.getTodayAndOverdue('2026-03-19');
+      // overdue(t-1, t-3) + today(오늘 할일) = 3개
+      expect(tasks.length, 3);
+    });
   });
 }

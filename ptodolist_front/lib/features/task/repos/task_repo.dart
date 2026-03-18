@@ -28,6 +28,19 @@ class TaskRepository {
     return getByDate(today);
   }
 
+  List<AdditionalTask> getOverdue(String today) {
+    return getAll()
+        .where((t) => !t.isCompleted && t.targetDate.compareTo(today) < 0)
+        .toList()
+      ..sort((a, b) => a.targetDate.compareTo(b.targetDate));
+  }
+
+  List<AdditionalTask> getTodayAndOverdue(String today) {
+    final overdue = getOverdue(today);
+    final todayTasks = getByDate(today);
+    return [...overdue, ...todayTasks];
+  }
+
   AdditionalTask? getById(String id) {
     if (useMock) {
       try {

@@ -61,12 +61,17 @@ class _HomeViewState extends State<HomeView> {
       widget.routineRepo.getActiveForDay(DateTime.now().weekday);
 
   List<AdditionalTask> get _todayTasks {
-    final tasks = widget.taskRepo.getByDate(_today);
-    // 미완료 먼저, 완료 나중
+    final tasks = widget.taskRepo.getTodayAndOverdue(_today);
+    // overdue(지난 날짜) 먼저, 그 다음 미완료, 완료 나중
     tasks.sort((a, b) {
       if (a.isCompleted != b.isCompleted) {
         return a.isCompleted ? 1 : -1;
       }
+      // overdue가 먼저 (오래된 순)
+      final aOverdue = a.targetDate.compareTo(_today) < 0;
+      final bOverdue = b.targetDate.compareTo(_today) < 0;
+      if (aOverdue != bOverdue) return aOverdue ? -1 : 1;
+      if (aOverdue && bOverdue) return a.targetDate.compareTo(b.targetDate);
       return a.order.compareTo(b.order);
     });
     return tasks;
@@ -143,6 +148,7 @@ class _HomeViewState extends State<HomeView> {
           title: result['title'],
           categoryId: result['categoryId'],
           subtasks: List<String>.from(result['subtasks'] ?? []),
+          targetDate: result['targetDate'] as String?,
         );
         widget.taskRepo.update(updated);
       });
@@ -193,6 +199,7 @@ class _HomeViewState extends State<HomeView> {
             title: result['title'],
             categoryId: result['categoryId'],
             subtasks: List<String>.from(result['subtasks'] ?? []),
+            targetDate: result['targetDate'] as String?,
           );
         });
       }
@@ -297,11 +304,20 @@ class _HomeViewState extends State<HomeView> {
                   const SizedBox(height: 8),
                   ..._todayTasks.map((task) {
                     final category = _getCategoryFor(task.categoryId);
+                    final isOverdue =
+                        !task.isCompleted &&
+                        task.targetDate.compareTo(_today) < 0;
+                    final overdueDays = isOverdue
+                        ? DateTime.now()
+                              .difference(DateTime.parse(task.targetDate))
+                              .inDays
+                        : 0;
                     return _buildCheckTile(
                       title: task.title,
                       isDone: task.isCompleted,
                       categoryColor: category?.color ?? '#8B5CF6',
                       subtasks: task.subtasks,
+                      overdueDays: overdueDays,
                       onToggle: () => _toggleTask(task.id),
                       onTap: () => _editTask(task),
                       onDelete: () {
@@ -332,6 +348,7 @@ class _HomeViewState extends State<HomeView> {
     int priority = 1,
     int? iconCodePoint,
     List<int> activeDays = const [],
+    int overdueDays = 0,
   }) {
     const dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
     final daysText = activeDays.isNotEmpty
@@ -395,6 +412,18 @@ class _HomeViewState extends State<HomeView> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (overdueDays > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Text(
+                      'D+$overdueDays',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 if (priority == 2)
                   const Icon(Icons.arrow_drop_up, color: Colors.red, size: 20),
                 if (priority == 0)

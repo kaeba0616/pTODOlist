@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/task/models/additional_task.dart';
@@ -17,7 +18,9 @@ class _TaskFormViewState extends State<TaskFormView> {
   late final TextEditingController _titleController;
   late String _selectedCategoryId;
   late List<String> _subtasks;
+  late DateTime _targetDate;
   final _subtaskController = TextEditingController();
+  static final _dateFmt = DateFormat('yyyy-MM-dd');
 
   bool get _isEditing => widget.task != null;
 
@@ -29,6 +32,21 @@ class _TaskFormViewState extends State<TaskFormView> {
         widget.task?.categoryId ??
         (widget.categories.isNotEmpty ? widget.categories.last.id : '');
     _subtasks = List.from(widget.task?.subtasks ?? []);
+    _targetDate = widget.task != null
+        ? DateTime.parse(widget.task!.targetDate)
+        : DateTime.now();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _targetDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() => _targetDate = picked);
+    }
   }
 
   @override
@@ -116,6 +134,18 @@ class _TaskFormViewState extends State<TaskFormView> {
                 if (value != null) setState(() => _selectedCategoryId = value);
               },
             ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: _pickDate,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: '날짜',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.calendar_today),
+                ),
+                child: Text(DateFormat('yyyy년 M월 d일').format(_targetDate)),
+              ),
+            ),
             const SizedBox(height: 20),
             Text(
               '세부 항목',
@@ -172,6 +202,7 @@ class _TaskFormViewState extends State<TaskFormView> {
                         'title': _titleController.text.trim(),
                         'categoryId': _selectedCategoryId,
                         'subtasks': _subtasks,
+                        'targetDate': _dateFmt.format(_targetDate),
                       });
                     },
               child: const Text('저장'),
