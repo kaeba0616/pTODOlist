@@ -39,17 +39,10 @@ class _CalendarViewState extends State<CalendarView> {
   }
 
   Map<String, double> _getCompletionRates() {
-    final year = _displayedMonth.year;
-    final month = _displayedMonth.month;
-    final startDate =
-        '$year-${month.toString().padLeft(2, '0')}-01';
-    final lastDay = DateTime(year, month + 1, 0).day;
-    final endDate =
-        '$year-${month.toString().padLeft(2, '0')}-${lastDay.toString().padLeft(2, '0')}';
-
-    final records =
-        widget.dailyRecordRepo.getRecordsInRange(startDate, endDate);
-    return {for (final r in records) r.date: r.completionRate};
+    return widget.dailyRecordRepo.getCompletionRatesForMonth(
+      _displayedMonth.year,
+      _displayedMonth.month,
+    );
   }
 
   int _calculateOverallStreak() {

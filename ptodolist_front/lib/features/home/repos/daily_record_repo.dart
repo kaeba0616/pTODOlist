@@ -69,6 +69,15 @@ class DailyRecordRepository {
       ..sort((a, b) => a.date.compareTo(b.date));
   }
 
+  Map<String, double> getCompletionRatesForMonth(int year, int month) {
+    final startDate = '$year-${month.toString().padLeft(2, '0')}-01';
+    final lastDay = DateTime(year, month + 1, 0).day;
+    final endDate =
+        '$year-${month.toString().padLeft(2, '0')}-${lastDay.toString().padLeft(2, '0')}';
+    final records = getRecordsInRange(startDate, endDate);
+    return {for (final r in records) r.date: r.completionRate};
+  }
+
   int deleteOlderThan(DateTime cutoff) {
     final cutoffStr = _dateFmt.format(cutoff);
     if (useMock) {

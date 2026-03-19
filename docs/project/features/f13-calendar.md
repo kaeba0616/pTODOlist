@@ -62,8 +62,8 @@
 ## Step 3: DB Design (Hive)
 
 - 새로운 Hive Box 불필요 (기존 DailyRecord 활용)
-- [ ] `DailyRecordRepo`에 `getCompletionRatesForMonth(year, month)` 추가
-- [ ] Repository 테스트
+- [x] `DailyRecordRepo`에 `getCompletionRatesForMonth(year, month)` 추가
+- [x] Repository 테스트
 
 ---
 

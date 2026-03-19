@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:ptodolist/features/home/repos/daily_record_repo.dart';
+import 'package:ptodolist/features/home/models/daily_record.dart';
 import 'package:ptodolist/features/routine/models/routine.dart';
 
 void main() {
@@ -94,6 +95,28 @@ void main() {
       expect(deleted, 0);
 
       expect(repo.get(today), isNotNull);
+    });
+
+    test('월별 달성률 맵을 반환한다', () {
+      // 3월 데이터 추가
+      repo.save(const DailyRecord(
+        date: '2026-03-01',
+        routineCompletions: {'r-1': true, 'r-2': false},
+      ));
+      repo.save(const DailyRecord(
+        date: '2026-03-15',
+        routineCompletions: {'r-1': true, 'r-2': true},
+      ));
+
+      final rates = repo.getCompletionRatesForMonth(2026, 3);
+      expect(rates['2026-03-01'], 0.5);
+      expect(rates['2026-03-15'], 1.0);
+      expect(rates.containsKey('2026-03-10'), false);
+    });
+
+    test('데이터 없는 월의 달성률 맵은 비어있다', () {
+      final rates = repo.getCompletionRatesForMonth(2025, 1);
+      expect(rates, isEmpty);
     });
   });
 }
