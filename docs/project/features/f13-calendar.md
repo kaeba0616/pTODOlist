@@ -2,7 +2,7 @@
 
 - **Feature ID**: F13
 - **예상 기간**: 3~4일
-- **상태**: `[status: in-progress]`
+- **상태**: `[status: completed]`
 - **의존성**: Phase 4 완료
 
 ## 개요
@@ -69,9 +69,9 @@
 
 ## Step 4: Integration
 
-- [ ] Mock → Real Repository 전환
-- [ ] `app_router.dart`에 4번째 탭 추가
-- [ ] 통합 테스트
+- [x] Mock → Real Repository 전환 (app_router.dart에서 useMock 분기 설정 완료)
+- [x] `app_router.dart`에 4번째 탭 추가
+- [x] 통합 테스트 (전체 131개 통과)
 
 ### 수정할 기존 파일
 - `ptodolist_front/lib/core/router/app_router.dart` - 4번째 탭 추가
@@ -87,9 +87,9 @@
 
 ## 완료 조건
 
-- [ ] 전체 테스트 통과
-- [ ] 4번째 하단 탭에서 월별 캘린더 표시
-- [ ] 날짜 탭 시 상세 바텀시트 표시
-- [ ] 월 이동 네비게이션 동작
-- [ ] 스트릭 배너 표시
+- [x] 전체 테스트 통과 (131개)
+- [x] 4번째 하단 탭에서 월별 캘린더 표시
+- [x] 날짜 탭 시 상세 바텀시트 표시
+- [x] 월 이동 네비게이션 동작
+- [x] 스트릭 배너 표시
 - [ ] 사용자 검토 및 승인

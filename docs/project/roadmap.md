@@ -80,7 +80,7 @@
 **Features**:
 | ID | 기능 | 의존성 | 상태 |
 |---|---|---|---|
-| F13 | 캘린더 뷰 (달력) | Phase 4 완료 | `[status: todo]` |
+| F13 | 캘린더 뷰 (달력) | Phase 4 완료 | `[status: completed]` |
 | F14 | 홈 위젯 (Android) | Phase 4 완료 | `[status: todo]` |
 
 **마일스톤**: 월별 캘린더 히트맵 + Android 홈 위젯에서 루틴 체크
