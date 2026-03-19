@@ -8,6 +8,7 @@
 | Phase 2 | Engagement | 통계, 스마트 알림 | F6~F7 | `[status: done]` |
 | Phase 3 | Polish | 설정, 데이터 관리, 테마 | F8 | `[status: done]` |
 | Phase 4 | Enhancement | 요일별 루틴, 연속 달성, 마감일 | F9~F12 | `[status: done]` |
+| Phase 5 | Visualization & Reach | 캘린더 뷰, 홈 위젯 | F13~F14 | `[status: in-progress]` |
 
 ---
 
@@ -69,6 +70,20 @@
 | F12 | 할 일 마감일 | F9 | `[status: completed]` |
 
 **마일스톤**: 요일별 루틴 필터링 + 연속 달성 뱃지 + overdue 할 일 표시
+
+---
+
+## Phase 5: Visualization & Reach `[status: in-progress]`
+
+**목표**: 캘린더 히트맵으로 과거 달성률 시각화 + 홈 위젯으로 앱 없이 루틴 체크
+
+**Features**:
+| ID | 기능 | 의존성 | 상태 |
+|---|---|---|---|
+| F13 | 캘린더 뷰 (달력) | Phase 4 완료 | `[status: todo]` |
+| F14 | 홈 위젯 (Android) | Phase 4 완료 | `[status: todo]` |
+
+**마일스톤**: 월별 캘린더 히트맵 + Android 홈 위젯에서 루틴 체크
 
 ---
 
