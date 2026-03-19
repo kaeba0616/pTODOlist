@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ptodolist/features/home/views/home_view.dart';
+import 'package:ptodolist/features/calendar/views/calendar_view.dart';
 import 'package:ptodolist/features/stats/views/stats_view.dart';
 import 'package:ptodolist/features/settings/views/settings_view.dart';
 import 'package:ptodolist/features/category/views/category_list_view.dart';
@@ -52,6 +53,38 @@ final appRouter = GoRouter(
                   routineRepo: routineRepo,
                   taskRepo: taskRepo,
                   dailyRecordRepo: dailyRecordRepo,
+                );
+              },
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/calendar',
+              builder: (context, state) {
+                const useMock = String.fromEnvironment('USE_MOCK') == 'true';
+                if (useMock) {
+                  return CalendarView(
+                    dailyRecordRepo: DailyRecordRepository(useMock: true),
+                    routineRepo: RoutineRepository(useMock: true),
+                    taskRepo: TaskRepository(useMock: true),
+                    categoryRepo: CategoryRepository(useMock: true),
+                  );
+                }
+                return CalendarView(
+                  dailyRecordRepo: DailyRecordRepository(
+                    box: Hive.box<DailyRecord>('dailyRecords'),
+                  ),
+                  routineRepo: RoutineRepository(
+                    box: Hive.box<Routine>('routines'),
+                  ),
+                  taskRepo: TaskRepository(
+                    box: Hive.box<AdditionalTask>('additionalTasks'),
+                  ),
+                  categoryRepo: CategoryRepository(
+                    box: Hive.box<Category>('categories'),
+                  ),
                 );
               },
             ),
@@ -139,6 +172,11 @@ class ScaffoldWithNavBar extends StatelessWidget {
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home_rounded),
             label: '오늘',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: '달력',
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),

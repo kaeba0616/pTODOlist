@@ -52,10 +52,10 @@
 - 76~100%: `primary` 100%
 
 ### 테스트
-- [ ] DayCell 위젯 테스트 (색상 매핑)
-- [ ] CalendarGrid 위젯 테스트 (날짜 그리드 렌더링)
-- [ ] CalendarView 위젯 테스트 (월 네비게이션)
-- [ ] DayDetailSheet 위젯 테스트
+- [x] DayCell 위젯 테스트 (색상 매핑)
+- [x] CalendarGrid 위젯 테스트 (날짜 그리드 렌더링)
+- [x] CalendarView 위젯 테스트 (월 네비게이션)
+- [x] DayDetailSheet 위젯 테스트
 
 ---
 
