@@ -2,7 +2,7 @@
 
 - **Feature ID**: F13
 - **예상 기간**: 3~4일
-- **상태**: `[status: todo]`
+- **상태**: `[status: in-progress]`
 - **의존성**: Phase 4 완료
 
 ## 개요
@@ -15,8 +15,8 @@
 
 ## Step 1: UX Planning & Design
 
-- [ ] `docs/ux/features/calendar-flow.md` 사용자 여정
-- [ ] `docs/ux/features/calendar-screens.md` 화면 구조
+- [x] `docs/ux/features/calendar-flow.md` 사용자 여정
+- [x] `docs/ux/features/calendar-screens.md` 화면 구조
 
 ### 화면 구성
 1. **월별 캘린더 뷰** (메인 탭 화면)
