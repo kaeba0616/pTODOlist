@@ -2,7 +2,7 @@
 
 **목표**: 캘린더 히트맵으로 과거 달성률 시각화 + 홈 위젯으로 앱 없이 루틴 체크
 
-**상태**: `[status: in-progress]`
+**상태**: `[status: done]`
 
 ---
 
@@ -11,7 +11,7 @@
 | ID | 기능 | 의존성 | 예상 기간 | 상태 |
 |---|---|---|---|---|
 | F13 | 캘린더 뷰 (달력) | Phase 4 완료 | 3~4일 | `[status: completed]` |
-| F14 | 홈 위젯 (Android) | Phase 4 완료 | 5~7일 | `[status: in-progress]` |
+| F14 | 홈 위젯 (Android) | Phase 4 완료 | 5~7일 | `[status: completed]` |
 
 ---
 

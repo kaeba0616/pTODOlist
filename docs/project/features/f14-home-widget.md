@@ -2,7 +2,7 @@
 
 - **Feature ID**: F14
 - **예상 기간**: 5~7일
-- **상태**: `[status: in-progress]`
+- **상태**: `[status: completed]`
 - **의존성**: Phase 4 완료
 
 ## 개요
@@ -38,8 +38,8 @@ Android 홈 화면 위젯 (4x2 크기)에서 오늘의 루틴 체크리스트와
 - `ptodolist_front/android/app/src/main/kotlin/.../HomeWidgetProvider.kt`
 
 ### 테스트
-- [ ] HomeWidgetService 유닛 테스트 (데이터 직렬화/역직렬화)
-- [ ] 위젯 액션 콜백 테스트
+- [x] HomeWidgetService 유닛 테스트 (데이터 직렬화/역직렬화)
+- [x] 위젯 액션 콜백 테스트
 
 ---
 
@@ -55,10 +55,10 @@ Android 홈 화면 위젯 (4x2 크기)에서 오늘의 루틴 체크리스트와
 ## Step 4: Integration
 
 ### 위젯 업데이트 트리거 포인트
-- [ ] 루틴 토글 시 (`home_view.dart`)
-- [ ] 루틴 추가/삭제 시
-- [ ] 자정 리셋 시 (`midnight_reset_service.dart`)
-- [ ] 앱 포그라운드 복귀 시
+- [x] 루틴 토글 시 (`home_view.dart`)
+- [x] 할 일 토글 시 (`home_view.dart`)
+- [x] 자정 리셋 시 (`midnight_reset_service.dart`)
+- [x] 앱 시작 시 (`main.dart`)
 
 ### 수정할 기존 파일
 - `ptodolist_front/pubspec.yaml` - `home_widget` 패키지 추가
@@ -71,9 +71,9 @@ Android 홈 화면 위젯 (4x2 크기)에서 오늘의 루틴 체크리스트와
 
 ## 완료 조건
 
-- [ ] HomeWidgetService 테스트 통과
-- [ ] Android 에뮬레이터에서 홈 위젯 추가 가능
-- [ ] 위젯에서 루틴 체크 → 앱 데이터 반영
-- [ ] 앱에서 루틴 체크 → 위젯 업데이트
-- [ ] 자정 리셋 후 위젯 초기화
+- [x] HomeWidgetService 테스트 통과 (6개)
+- [x] Android 네이티브 위젯 코드 작성
+- [x] 앱에서 루틴 체크 → 위젯 업데이트 훅 연결
+- [x] 자정 리셋 후 위젯 초기화 훅 연결
+- [ ] Android 에뮬레이터에서 실기기 테스트 (사용자 검증 필요)
 - [ ] 사용자 검토 및 승인

@@ -4,11 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:ptodolist/features/home/models/daily_record.dart';
 import 'package:ptodolist/features/home/repos/daily_record_repo.dart';
 import 'package:ptodolist/features/routine/repos/routine_repo.dart';
+import 'package:ptodolist/features/home_widget/services/home_widget_service.dart';
 
 class MidnightResetService with WidgetsBindingObserver {
   final DailyRecordRepository dailyRecordRepo;
   final RoutineRepository routineRepo;
   final VoidCallback? onDayChanged;
+  final HomeWidgetService? homeWidgetService;
 
   Timer? _timer;
   String _lastKnownDate;
@@ -19,6 +21,7 @@ class MidnightResetService with WidgetsBindingObserver {
     required this.dailyRecordRepo,
     required this.routineRepo,
     this.onDayChanged,
+    this.homeWidgetService,
   }) : _lastKnownDate = _dateFmt.format(DateTime.now());
 
   void start() {
@@ -53,6 +56,7 @@ class MidnightResetService with WidgetsBindingObserver {
     if (today != _lastKnownDate) {
       _lastKnownDate = today;
       _ensureTodayRecord();
+      homeWidgetService?.updateWidgetData();
       onDayChanged?.call();
     }
   }

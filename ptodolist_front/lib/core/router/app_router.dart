@@ -13,6 +13,7 @@ import 'package:ptodolist/features/task/models/additional_task.dart';
 import 'package:ptodolist/features/task/repos/task_repo.dart';
 import 'package:ptodolist/features/home/models/daily_record.dart';
 import 'package:ptodolist/features/home/repos/daily_record_repo.dart';
+import 'package:ptodolist/features/home_widget/services/home_widget_service.dart';
 import 'package:hive/hive.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -48,11 +49,18 @@ final appRouter = GoRouter(
                     : DailyRecordRepository(
                         box: Hive.box<DailyRecord>('dailyRecords'),
                       );
+                final homeWidgetService = useMock
+                    ? null
+                    : HomeWidgetService(
+                        dailyRecordRepo: dailyRecordRepo,
+                        routineRepo: routineRepo,
+                      );
                 return HomeView(
                   categoryRepo: catRepo,
                   routineRepo: routineRepo,
                   taskRepo: taskRepo,
                   dailyRecordRepo: dailyRecordRepo,
+                  homeWidgetService: homeWidgetService,
                 );
               },
             ),

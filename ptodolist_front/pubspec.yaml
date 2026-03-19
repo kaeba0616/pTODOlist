@@ -34,6 +34,9 @@ dependencies:
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
 
+  # Home Widget
+  home_widget: ^0.7.0
+
   # Utils
   uuid: ^4.5.1
   intl: ^0.20.2

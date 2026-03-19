@@ -14,12 +14,14 @@ import 'package:ptodolist/features/home/models/daily_record.dart';
 import 'package:ptodolist/features/home/repos/daily_record_repo.dart';
 import 'package:ptodolist/features/home/widgets/daily_progress_ring.dart';
 import 'package:ptodolist/features/home/widgets/add_bottom_sheet.dart';
+import 'package:ptodolist/features/home_widget/services/home_widget_service.dart';
 
 class HomeView extends StatefulWidget {
   final CategoryRepository categoryRepo;
   final RoutineRepository routineRepo;
   final TaskRepository taskRepo;
   final DailyRecordRepository? dailyRecordRepo;
+  final HomeWidgetService? homeWidgetService;
 
   const HomeView({
     super.key,
@@ -27,6 +29,7 @@ class HomeView extends StatefulWidget {
     required this.routineRepo,
     required this.taskRepo,
     this.dailyRecordRepo,
+    this.homeWidgetService,
   });
 
   @override
@@ -111,12 +114,14 @@ class _HomeViewState extends State<HomeView> {
       _dailyRecord = _dailyRecord.toggleRoutine(routineId);
       widget.dailyRecordRepo?.save(_dailyRecord);
     });
+    widget.homeWidgetService?.updateWidgetData();
   }
 
   void _toggleTask(String taskId) {
     setState(() {
       widget.taskRepo.toggleComplete(taskId);
     });
+    widget.homeWidgetService?.updateWidgetData();
   }
 
   Future<void> _editRoutine(Routine routine) async {
