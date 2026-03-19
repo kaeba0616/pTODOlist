@@ -2,7 +2,7 @@
 
 - **Feature ID**: F14
 - **예상 기간**: 5~7일
-- **상태**: `[status: todo]`
+- **상태**: `[status: in-progress]`
 - **의존성**: Phase 4 완료
 
 ## 개요
@@ -14,8 +14,8 @@ Android 홈 화면 위젯 (4x2 크기)에서 오늘의 루틴 체크리스트와
 
 ## Step 1: UX Planning & Design
 
-- [ ] `docs/ux/features/home-widget-flow.md` 사용자 여정
-- [ ] `docs/ux/features/home-widget-screens.md` 위젯 레이아웃
+- [x] `docs/ux/features/home-widget-flow.md` 사용자 여정
+- [x] `docs/ux/features/home-widget-screens.md` 위젯 레이아웃
 
 ### 위젯 구성 (중형 4x2)
 - 헤더: 앱 아이콘 + 날짜 + 달성률 (예: "3/7")
