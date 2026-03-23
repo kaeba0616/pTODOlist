@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ptodolist/core/theme/app_theme.dart';
 
 class DayCell extends StatelessWidget {
   final int day;
@@ -18,38 +19,37 @@ class DayCell extends StatelessWidget {
 
   /// 달성률에 따른 색상 반환 (GitHub 잔디 스타일)
   static Color completionColor(double rate, {required bool isLight}) {
-    const primary = Color(0xFF4F46E5);
-    final empty = isLight ? const Color(0xFFF3F4F6) : const Color(0xFF374151);
+    final primary = isLight ? AppTheme.primaryDark : AppTheme.primary;
+    final empty = isLight ? const Color(0xFFF2F3F7) : AppTheme.darkCard;
 
     if (rate <= 0) return empty;
-    if (rate <= 0.25) return primary.withValues(alpha: 0.2);
-    if (rate <= 0.50) return primary.withValues(alpha: 0.4);
+    if (rate <= 0.25) return primary.withValues(alpha: 0.15);
+    if (rate <= 0.50) return primary.withValues(alpha: 0.35);
     if (rate <= 0.75) return primary.withValues(alpha: 0.6);
     return primary;
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.findAncestorWidgetOfExactType<MaterialApp>() != null;
     final colorScheme = Theme.of(context).colorScheme;
     final isLight = Theme.of(context).brightness == Brightness.light;
 
     final bgColor = isFuture
-        ? (isLight ? Colors.grey[100]! : Colors.grey[800]!)
+        ? (isLight ? const Color(0xFFF2F3F7) : AppTheme.darkBg)
         : completionRate != null
             ? completionColor(completionRate!, isLight: isLight)
-            : (isLight ? const Color(0xFFF3F4F6) : const Color(0xFF374151));
+            : (isLight ? const Color(0xFFF2F3F7) : AppTheme.darkCard);
 
     final textColor = isFuture
-        ? (isLight ? Colors.grey[400]! : Colors.grey[600]!)
-        : (isLight ? const Color(0xFF111827) : const Color(0xFFF9FAFB));
+        ? (isLight ? Colors.grey[400]! : AppTheme.darkTextTertiary)
+        : (isLight ? const Color(0xFF111827) : AppTheme.darkTextPrimary);
 
     return GestureDetector(
       onTap: isFuture ? null : onTap,
       child: Container(
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           border: isToday
               ? Border.all(color: colorScheme.primary, width: 2)
               : null,
@@ -59,7 +59,7 @@ class DayCell extends StatelessWidget {
           '$day',
           style: TextStyle(
             fontSize: 12,
-            fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+            fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
             color: textColor,
           ),
         ),

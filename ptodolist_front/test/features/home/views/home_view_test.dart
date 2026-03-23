@@ -60,8 +60,8 @@ void main() {
     testWidgets('진행률 링이 표시된다', (tester) async {
       await tester.pumpWidget(buildTestWidget());
 
-      // 초기 상태: 0% (mock tasks 중 1개 완료)
-      expect(find.textContaining('완료'), findsOneWidget);
+      // 진행률 링: 퍼센트 표시
+      expect(find.textContaining('%'), findsOneWidget);
     });
 
     testWidgets('FAB이 표시된다', (tester) async {

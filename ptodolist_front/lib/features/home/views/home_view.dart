@@ -235,20 +235,62 @@ class _HomeViewState extends State<HomeView> {
       'ko_KR',
     ).format(DateTime.now());
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(title: const Text('오늘')),
-      body: _totalCount == 0
+      body: Stack(
+        children: [
+          // 배경 장식
+          Positioned(
+            top: -60,
+            right: -40,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFFE8A838).withValues(alpha: isDark ? 0.08 : 0.06),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 100,
+            left: -80,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.06 : 0.04),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // 메인 컨텐츠
+          _totalCount == 0
           ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.edit_note, size: 64, color: Colors.grey[400]),
+                  Icon(Icons.edit_note, size: 64,
+                      color: isDark ? const Color(0xFF6B7280) : Colors.grey[400]),
                   const SizedBox(height: 16),
                   const Text('아직 할 일이 없어요'),
                   const SizedBox(height: 4),
                   Text(
                     '+ 버튼으로 추가해보세요',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(
+                        color: isDark ? const Color(0xFF9CA3AF) : Colors.grey[600]),
                   ),
                 ],
               ),
@@ -260,12 +302,13 @@ class _HomeViewState extends State<HomeView> {
                 Center(
                   child: Text(
                     dateStr,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(color: Colors.grey[700]),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isDark ? const Color(0xFF9CA3AF) : Colors.grey[700],
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
                 // 진행률 링
                 Center(
@@ -274,7 +317,7 @@ class _HomeViewState extends State<HomeView> {
                     total: _totalCount,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // 루틴 섹션
                 if (_activeRoutines.isNotEmpty) ...[
@@ -354,6 +397,8 @@ class _HomeViewState extends State<HomeView> {
                 ],
               ],
             ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddSheet,
         child: const Icon(Icons.add),
@@ -410,7 +455,7 @@ class _HomeViewState extends State<HomeView> {
                   child: Icon(
                     isDone ? Icons.check_circle : Icons.circle_outlined,
                     color: isDone
-                        ? const Color(0xFF10B981)
+                        ? const Color(0xFF34D399)
                         : Theme.of(context).colorScheme.outline,
                   ),
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:ptodolist/core/theme/app_theme.dart';
 
 class DailyProgressRing extends StatelessWidget {
   final int completed;
@@ -10,52 +11,80 @@ class DailyProgressRing extends StatelessWidget {
     super.key,
     required this.completed,
     required this.total,
-    this.size = 80,
+    this.size = 140,
   });
 
   double get _progress => total == 0 ? 0.0 : completed / total;
   int get _percent => (_progress * 100).round();
 
   Color _progressColor() {
-    if (_progress >= 1.0) return const Color(0xFF10B981); // success
-    if (_progress >= 0.5) return const Color(0xFF4F46E5); // primary
-    return const Color(0xFFF59E0B); // warning
+    if (_progress >= 1.0) return AppTheme.success;
+    if (_progress >= 0.5) return AppTheme.primary;
+    return AppTheme.warning;
   }
 
   @override
   Widget build(BuildContext context) {
     if (total == 0) return const SizedBox.shrink();
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
+    final color = _progressColor();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: size + 32,
+      height: size + 32,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withValues(alpha: isDark ? 0.12 : 0.08),
+            Colors.transparent,
+          ],
+          stops: const [0.5, 1.0],
+        ),
+      ),
+      child: Center(
+        child: SizedBox(
           width: size,
           height: size,
           child: CustomPaint(
             painter: _RingPainter(
               progress: _progress,
-              color: _progressColor(),
-              trackColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: color,
+              trackColor: isDark ? AppTheme.darkCard : const Color(0xFFE5E7EB),
+              glowColor: color.withValues(alpha: 0.3),
             ),
             child: Center(
-              child: Text(
-                '$_percent%',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$_percent%',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                      letterSpacing: -1,
+                      height: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$completed/$total',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: isDark
+                          ? AppTheme.darkTextSecondary
+                          : Colors.grey[600],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          '$completed/$total 완료',
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -64,18 +93,20 @@ class _RingPainter extends CustomPainter {
   final double progress;
   final Color color;
   final Color trackColor;
+  final Color glowColor;
 
   _RingPainter({
     required this.progress,
     required this.color,
     required this.trackColor,
+    required this.glowColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - 8) / 2;
-    const strokeWidth = 8.0;
+    final radius = (size.width - 14) / 2;
+    const strokeWidth = 10.0;
 
     // Track
     final trackPaint = Paint()
@@ -85,7 +116,24 @@ class _RingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     canvas.drawCircle(center, radius, trackPaint);
 
-    // Progress
+    if (progress <= 0) return;
+
+    // Glow
+    final glowPaint = Paint()
+      ..color = glowColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth + 6
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      2 * pi * progress,
+      false,
+      glowPaint,
+    );
+
+    // Progress arc
     final progressPaint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke

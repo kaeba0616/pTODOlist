@@ -18,20 +18,25 @@ HomeWidgetService? _homeWidgetService;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ko_KR', null);
-  await DatabaseService.init();
-  await NotificationService.init();
 
-  // Home Widget 초기화
-  _homeWidgetService = HomeWidgetService(
-    dailyRecordRepo: DailyRecordRepository(
-      box: Hive.box<DailyRecord>('dailyRecords'),
-    ),
-    routineRepo: RoutineRepository(
-      box: Hive.box<Routine>('routines'),
-    ),
-  );
-  HomeWidget.registerInteractivityCallback(backgroundCallback);
-  await _homeWidgetService!.updateWidgetData();
+  const useMock = String.fromEnvironment('USE_MOCK') == 'true';
+
+  if (!useMock) {
+    await DatabaseService.init();
+    await NotificationService.init();
+
+    // Home Widget 초기화
+    _homeWidgetService = HomeWidgetService(
+      dailyRecordRepo: DailyRecordRepository(
+        box: Hive.box<DailyRecord>('dailyRecords'),
+      ),
+      routineRepo: RoutineRepository(
+        box: Hive.box<Routine>('routines'),
+      ),
+    );
+    HomeWidget.registerInteractivityCallback(backgroundCallback);
+    await _homeWidgetService!.updateWidgetData();
+  }
 
   runApp(const ProviderScope(child: PtodolistApp()));
 }
