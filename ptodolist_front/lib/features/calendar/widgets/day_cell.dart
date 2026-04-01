@@ -17,10 +17,9 @@ class DayCell extends StatelessWidget {
     this.onTap,
   });
 
-  /// 달성률에 따른 색상 반환 (GitHub 잔디 스타일)
   static Color completionColor(double rate, {required bool isLight}) {
-    final primary = isLight ? AppTheme.primaryDark : AppTheme.primary;
-    final empty = isLight ? const Color(0xFFF2F3F7) : AppTheme.darkCard;
+    final primary = isLight ? AppTheme.primary : const Color(0xFFB1F0CE);
+    final empty = isLight ? AppTheme.surfaceContainerLow : const Color(0xFF22252A);
 
     if (rate <= 0) return empty;
     if (rate <= 0.25) return primary.withValues(alpha: 0.15);
@@ -35,14 +34,14 @@ class DayCell extends StatelessWidget {
     final isLight = Theme.of(context).brightness == Brightness.light;
 
     final bgColor = isFuture
-        ? (isLight ? const Color(0xFFF2F3F7) : AppTheme.darkBg)
+        ? (isLight ? AppTheme.surfaceContainerLow : const Color(0xFF0C0F10))
         : completionRate != null
             ? completionColor(completionRate!, isLight: isLight)
-            : (isLight ? const Color(0xFFF2F3F7) : AppTheme.darkCard);
+            : (isLight ? AppTheme.surfaceContainerLow : const Color(0xFF22252A));
 
     final textColor = isFuture
-        ? (isLight ? Colors.grey[400]! : AppTheme.darkTextTertiary)
-        : (isLight ? const Color(0xFF111827) : AppTheme.darkTextPrimary);
+        ? (isLight ? AppTheme.outlineVariant : const Color(0xFF6B7280))
+        : (isLight ? AppTheme.onSurface : const Color(0xFFF1F4F5));
 
     return GestureDetector(
       onTap: isFuture ? null : onTap,

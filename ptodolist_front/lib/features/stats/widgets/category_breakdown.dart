@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/core/utils/stats_calculator.dart';
 
@@ -11,62 +13,74 @@ class CategoryBreakdown extends StatelessWidget {
   Widget build(BuildContext context) {
     if (stats.isEmpty) return const SizedBox.shrink();
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '카테고리별 달성률',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        ...stats.map((stat) {
-          final percent = (stat.rate * 100).round();
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: parseHexColor(stat.color),
-                    shape: BoxShape.circle,
-                  ),
+      children: stats.map((stat) {
+        final percent = (stat.rate * 100).round();
+        final color = parseHexColor(stat.color);
+        final cardBg = isDark
+            ? const Color(0xFF22252A)
+            : AppTheme.surfaceContainerLowest;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 60,
-                  child: Text(
-                    stat.name,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                child: Icon(Icons.label_outline, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      stat.name,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(9999),
+                      child: LinearProgressIndicator(
+                        value: stat.rate,
+                        minHeight: 4,
+                        backgroundColor: AppTheme.surfaceContainerHighest,
+                        color: color,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: LinearProgressIndicator(
-                    value: stat.rate,
-                    backgroundColor: Colors.grey[200],
-                    color: parseHexColor(stat.color),
-                    minHeight: 8,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '$percent%',
+                style: GoogleFonts.manrope(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.primary,
                 ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 40,
-                  child: Text(
-                    '$percent%',
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

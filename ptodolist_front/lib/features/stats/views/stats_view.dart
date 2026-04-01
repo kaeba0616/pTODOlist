@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/stats_calculator.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
@@ -53,20 +55,11 @@ class _StatsViewState extends State<StatsView> {
     final tasks = widget.taskRepo!.getAll();
     switch (_period) {
       case StatsPeriod.daily:
-        return StatsCalculator.dailyStats(
-          records: _getRecords(7),
-          tasks: tasks,
-        );
+        return StatsCalculator.dailyStats(records: _getRecords(7), tasks: tasks);
       case StatsPeriod.weekly:
-        return StatsCalculator.weeklyStats(
-          records: _getRecords(28),
-          tasks: tasks,
-        );
+        return StatsCalculator.weeklyStats(records: _getRecords(28), tasks: tasks);
       case StatsPeriod.monthly:
-        return StatsCalculator.monthlyStats(
-          records: _getRecords(180),
-          tasks: tasks,
-        );
+        return StatsCalculator.monthlyStats(records: _getRecords(180), tasks: tasks);
     }
   }
 
@@ -84,13 +77,9 @@ class _StatsViewState extends State<StatsView> {
               .toSet();
           if (catRoutineIds.isEmpty) {
             return CategoryStat(
-              categoryId: cat.id,
-              name: cat.name,
-              color: cat.color,
-              rate: 0,
+              categoryId: cat.id, name: cat.name, color: cat.color, rate: 0,
             );
           }
-
           int total = 0;
           int done = 0;
           for (final record in records) {
@@ -101,11 +90,8 @@ class _StatsViewState extends State<StatsView> {
               }
             }
           }
-
           return CategoryStat(
-            categoryId: cat.id,
-            name: cat.name,
-            color: cat.color,
+            categoryId: cat.id, name: cat.name, color: cat.color,
             rate: total == 0 ? 0 : done / total,
           );
         })
@@ -113,8 +99,23 @@ class _StatsViewState extends State<StatsView> {
         .toList();
   }
 
+  double _getWeeklyRate() {
+    final records = _getRecords(7);
+    if (records.isEmpty) return 0;
+    int total = 0;
+    int done = 0;
+    for (final r in records) {
+      total += r.routineCompletions.length;
+      done += r.completedCount;
+    }
+    return total == 0 ? 0 : done / total;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (!_hasRepos) {
       return Scaffold(
         appBar: AppBar(title: const Text('통계')),
@@ -125,53 +126,377 @@ class _StatsViewState extends State<StatsView> {
     final chartData = _getChartData();
     final categoryStats = _getCategoryStats();
     final hasData = chartData.any((d) => d.rate > 0);
+    final weeklyRate = _getWeeklyRate();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('통계')),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Icon(Icons.calendar_today, size: 20,
+              color: isDark ? const Color(0xFFB1F0CE) : AppTheme.brandAccent),
+            const SizedBox(width: 8),
+            Text('pTODOlist'),
+          ],
+        ),
+      ),
       body: !hasData
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.bar_chart, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  const Text('아직 데이터가 없어요'),
-                  const SizedBox(height: 4),
-                  Text(
-                    '루틴을 체크하면 통계가 쌓이기 시작해요',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            )
+          ? _buildEmptyState(theme)
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               children: [
-                // 기간 선택
+                // Title
+                _buildTitle(theme),
+                const SizedBox(height: 20),
+
+                // Period selector
                 SegmentedButton<StatsPeriod>(
                   segments: const [
                     ButtonSegment(value: StatsPeriod.daily, label: Text('일별')),
                     ButtonSegment(value: StatsPeriod.weekly, label: Text('주별')),
-                    ButtonSegment(
-                      value: StatsPeriod.monthly,
-                      label: Text('월별'),
-                    ),
+                    ButtonSegment(value: StatsPeriod.monthly, label: Text('월별')),
                   ],
                   selected: {_period},
                   onSelectionChanged: (set) =>
                       setState(() => _period = set.first),
                 ),
+                const SizedBox(height: 20),
+
+                // Weekly progress card
+                _buildWeeklyCard(theme, isDark, weeklyRate, chartData),
+                const SizedBox(height: 16),
+
+                // Insight card
+                if (_period == StatsPeriod.daily) ...[
+                  _buildInsightCard(theme, isDark),
+                  const SizedBox(height: 16),
+                ],
+
+                // Category breakdown
+                if (_period == StatsPeriod.daily && categoryStats.isNotEmpty) ...[
+                  _buildCategorySection(theme, isDark, categoryStats),
+                  const SizedBox(height: 16),
+                ],
+
+                // Bottom stats row
+                _buildBottomStats(theme, isDark, weeklyRate),
                 const SizedBox(height: 24),
-
-                // 차트
-                CompletionChart(stats: chartData),
-                const SizedBox(height: 32),
-
-                // 카테고리별 분석
-                if (_period == StatsPeriod.daily)
-                  CategoryBreakdown(stats: categoryStats),
               ],
             ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.leaderboard, size: 64,
+              color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+          const SizedBox(height: 16),
+          Text('아직 데이터가 없어요', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Text('루틴을 체크하면 통계가 쌓이기 시작해요',
+              style: theme.textTheme.bodyMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTitle(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PERFORMANCE OVERVIEW',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.tertiary,
+              letterSpacing: 2,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '통계',
+            style: GoogleFonts.manrope(
+              fontSize: 36,
+              fontWeight: FontWeight.w300,
+              letterSpacing: -1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyCard(ThemeData theme, bool isDark, double weeklyRate,
+      List<DayStat> chartData) {
+    final cardColor = isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerLowest;
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: isDark
+            ? null
+            : Border.all(color: AppTheme.outlineVariant.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('주간 달성률',
+                      style: GoogleFonts.manrope(
+                          fontSize: 20, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${(weeklyRate * 100).round()}% 완료',
+                    style: GoogleFonts.inter(
+                        fontSize: 13, color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Container(width: 8, height: 8,
+                      decoration: BoxDecoration(
+                          color: theme.colorScheme.primary, shape: BoxShape.circle)),
+                  const SizedBox(width: 6),
+                  Container(width: 8, height: 8,
+                      decoration: BoxDecoration(
+                          color: AppTheme.surfaceContainerHighest,
+                          shape: BoxShape.circle)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 200,
+            child: CompletionChart(stats: chartData),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsightCard(ThemeData theme, bool isDark) {
+    final routines = widget.routineRepo?.getAll() ?? [];
+    if (routines.isEmpty) return const SizedBox.shrink();
+
+    // Find best routine
+    final records = _getRecords(14);
+    String bestName = routines.first.title;
+    int bestCount = 0;
+    for (final r in routines) {
+      int count = 0;
+      for (final rec in records) {
+        if (rec.routineCompletions[r.id] == true) count++;
+      }
+      if (count > bestCount) {
+        bestCount = count;
+        bestName = r.title;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF005050) : AppTheme.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.auto_awesome, size: 18,
+                      color: isDark ? const Color(0xFFB1F0CE) : AppTheme.onPrimaryContainer),
+                  const SizedBox(width: 6),
+                  Text(
+                    'SMART INSIGHT',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2,
+                      color: isDark ? const Color(0xFFB1F0CE) : AppTheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '가장 꾸준한 루틴은\n',
+                      style: GoogleFonts.manrope(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w300,
+                        color: isDark ? const Color(0xFFE6FFEE) : AppTheme.onPrimaryContainer,
+                      ),
+                    ),
+                    TextSpan(
+                      text: bestName,
+                      style: GoogleFonts.manrope(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? const Color(0xFFE6FFEE) : AppTheme.onPrimaryContainer,
+                        decoration: TextDecoration.underline,
+                        decorationStyle: TextDecorationStyle.solid,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '최근 2주간 $bestCount회 완료했어요.',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: (isDark ? const Color(0xFFE6FFEE) : AppTheme.onPrimaryContainer)
+                      .withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            right: -12,
+            bottom: -12,
+            child: Icon(
+              Icons.flare,
+              size: 100,
+              color: (isDark ? Colors.white : AppTheme.onPrimaryContainer)
+                  .withValues(alpha: 0.08),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategorySection(
+      ThemeData theme, bool isDark, List<CategoryStat> stats) {
+    final cardColor = isDark ? const Color(0xFF1A1C1E) : AppTheme.surfaceContainerLow;
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('카테고리별 달성률',
+              style: GoogleFonts.manrope(fontSize: 20, fontWeight: FontWeight.w500)),
+          const SizedBox(height: 4),
+          Text('이번 주 루틴 완료율',
+              style: GoogleFonts.inter(
+                  fontSize: 13, color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 16),
+          CategoryBreakdown(stats: stats),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomStats(ThemeData theme, bool isDark, double weeklyRate) {
+    final todayRecord = _getRecords(1);
+    final todayRate = todayRecord.isNotEmpty
+        ? (todayRecord.last.completedCount /
+                (todayRecord.last.routineCompletions.length.clamp(1, 999)))
+        : 0.0;
+    final remaining = todayRecord.isNotEmpty
+        ? todayRecord.last.routineCompletions.length -
+            todayRecord.last.completedCount
+        : 0;
+
+    return Row(
+      children: [
+        // Focus Peak
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1A1C1E) : Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.psychology, size: 24,
+                      color: theme.colorScheme.primary),
+                ),
+                const SizedBox(height: 8),
+                Text('오늘 달성률',
+                    style: GoogleFonts.manrope(
+                        fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 4),
+                Text(
+                  '${(todayRate * 100).round()}%',
+                  style: GoogleFonts.manrope(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Daily Goal Ring
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(16),
+              border: isDark
+                  ? null
+                  : Border.all(color: AppTheme.outlineVariant.withValues(alpha: 0.15)),
+            ),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: CircularProgressIndicator(
+                    value: todayRate.clamp(0.0, 1.0),
+                    backgroundColor: AppTheme.surfaceContainerHighest,
+                    color: theme.colorScheme.primary,
+                    strokeWidth: 6,
+                    strokeCap: StrokeCap.round,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  remaining > 0 ? '$remaining개 남음' : '완료!',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
