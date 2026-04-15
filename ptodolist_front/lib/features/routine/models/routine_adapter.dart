@@ -26,13 +26,14 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       activeDays: fields.containsKey(9)
           ? List<int>.from(fields[9] as List)
           : const [],
+      deletedAt: fields.containsKey(10) ? fields[10] as String? : null,
     );
   }
 
   @override
   void write(BinaryWriter writer, Routine obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -52,6 +53,8 @@ class RoutineAdapter extends TypeAdapter<Routine> {
       ..writeByte(8)
       ..write(obj.iconCodePoint)
       ..writeByte(9)
-      ..write(obj.activeDays);
+      ..write(obj.activeDays)
+      ..writeByte(10)
+      ..write(obj.deletedAt);
   }
 }

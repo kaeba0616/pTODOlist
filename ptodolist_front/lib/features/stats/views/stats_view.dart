@@ -133,7 +133,7 @@ class _StatsViewState extends State<StatsView> {
         title: Row(
           children: [
             Icon(Icons.calendar_today, size: 20,
-              color: isDark ? const Color(0xFFB1F0CE) : AppTheme.brandAccent),
+              color: theme.colorScheme.primary),
             const SizedBox(width: 8),
             Text('pTODOlist'),
           ],
@@ -233,11 +233,10 @@ class _StatsViewState extends State<StatsView> {
 
   Widget _buildWeeklyCard(ThemeData theme, bool isDark, double weeklyRate,
       List<DayStat> chartData) {
-    final cardColor = isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerLowest;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: cardColor,
+        color: (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest),
         borderRadius: BorderRadius.circular(16),
         border: isDark
             ? null
@@ -309,7 +308,7 @@ class _StatsViewState extends State<StatsView> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF005050) : AppTheme.primaryContainer,
+        color: theme.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Stack(
@@ -320,7 +319,7 @@ class _StatsViewState extends State<StatsView> {
               Row(
                 children: [
                   Icon(Icons.auto_awesome, size: 18,
-                      color: isDark ? const Color(0xFFB1F0CE) : AppTheme.onPrimaryContainer),
+                      color: theme.colorScheme.onPrimaryContainer),
                   const SizedBox(width: 6),
                   Text(
                     'SMART INSIGHT',
@@ -328,7 +327,7 @@ class _StatsViewState extends State<StatsView> {
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 2,
-                      color: isDark ? const Color(0xFFB1F0CE) : AppTheme.onPrimaryContainer,
+                      color: theme.colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ],
@@ -342,7 +341,7 @@ class _StatsViewState extends State<StatsView> {
                       style: GoogleFonts.manrope(
                         fontSize: 22,
                         fontWeight: FontWeight.w300,
-                        color: isDark ? const Color(0xFFE6FFEE) : AppTheme.onPrimaryContainer,
+                        color: theme.colorScheme.onPrimaryContainer,
                       ),
                     ),
                     TextSpan(
@@ -350,7 +349,7 @@ class _StatsViewState extends State<StatsView> {
                       style: GoogleFonts.manrope(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? const Color(0xFFE6FFEE) : AppTheme.onPrimaryContainer,
+                        color: theme.colorScheme.onPrimaryContainer,
                         decoration: TextDecoration.underline,
                         decorationStyle: TextDecorationStyle.solid,
                       ),
@@ -363,7 +362,7 @@ class _StatsViewState extends State<StatsView> {
                 '최근 2주간 $bestCount회 완료했어요.',
                 style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: (isDark ? const Color(0xFFE6FFEE) : AppTheme.onPrimaryContainer)
+                  color: theme.colorScheme.onPrimaryContainer
                       .withValues(alpha: 0.8),
                 ),
               ),
@@ -375,7 +374,7 @@ class _StatsViewState extends State<StatsView> {
             child: Icon(
               Icons.flare,
               size: 100,
-              color: (isDark ? Colors.white : AppTheme.onPrimaryContainer)
+              color: theme.colorScheme.onPrimaryContainer
                   .withValues(alpha: 0.08),
             ),
           ),
@@ -386,7 +385,7 @@ class _StatsViewState extends State<StatsView> {
 
   Widget _buildCategorySection(
       ThemeData theme, bool isDark, List<CategoryStat> stats) {
-    final cardColor = isDark ? const Color(0xFF1A1C1E) : AppTheme.surfaceContainerLow;
+    final cardColor = isDark ? theme.colorScheme.surface : AppTheme.surfaceContainerLow;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -427,7 +426,7 @@ class _StatsViewState extends State<StatsView> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerHighest,
+              color: (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -436,7 +435,7 @@ class _StatsViewState extends State<StatsView> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1A1C1E) : Colors.white,
+                    color: theme.colorScheme.surface,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(Icons.psychology, size: 24,
@@ -465,7 +464,7 @@ class _StatsViewState extends State<StatsView> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerLowest,
+              color: (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest),
               borderRadius: BorderRadius.circular(16),
               border: isDark
                   ? null

@@ -20,9 +20,7 @@ class CategoryBreakdown extends StatelessWidget {
       children: stats.map((stat) {
         final percent = (stat.rate * 100).round();
         final color = parseHexColor(stat.color);
-        final cardBg = isDark
-            ? const Color(0xFF22252A)
-            : AppTheme.surfaceContainerLowest;
+        final cardBg = (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
 
         return Container(
           margin: const EdgeInsets.only(bottom: 8),

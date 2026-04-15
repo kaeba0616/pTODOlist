@@ -88,7 +88,7 @@ class _SettingsViewState extends State<SettingsView> {
         title: Row(
           children: [
             Icon(Icons.calendar_today, size: 20,
-              color: isDark ? const Color(0xFFB1F0CE) : AppTheme.brandAccent),
+              color: theme.colorScheme.primary),
             const SizedBox(width: 8),
             Text('pTODOlist'),
           ],
@@ -241,14 +241,10 @@ class _SettingsViewState extends State<SettingsView> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF005050).withValues(alpha: 0.3)
-            : AppTheme.primaryContainer.withValues(alpha: 0.3),
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark
-              ? const Color(0xFF005050).withValues(alpha: 0.2)
-              : AppTheme.primaryContainer.withValues(alpha: 0.4),
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
         ),
       ),
       child: Stack(
@@ -266,9 +262,7 @@ class _SettingsViewState extends State<SettingsView> {
                     style: GoogleFonts.manrope(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? const Color(0xFFB1F0CE)
-                          : AppTheme.onPrimaryContainer,
+                      color: theme.colorScheme.onPrimaryContainer,
                     ),
                   ),
                 ],
@@ -279,9 +273,7 @@ class _SettingsViewState extends State<SettingsView> {
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   height: 1.5,
-                  color: (isDark
-                          ? const Color(0xFFB1F0CE)
-                          : AppTheme.onPrimaryContainer)
+                  color: theme.colorScheme.onPrimaryContainer
                       .withValues(alpha: 0.9),
                 ),
               ),
@@ -314,8 +306,8 @@ class _SettingsViewState extends State<SettingsView> {
     VoidCallback? onTap,
     bool isDestructive = false,
   }) {
-    final cardColor = isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerLowest;
-    final iconBgDefault = isDark ? const Color(0xFF2E3238) : AppTheme.surfaceContainerHigh;
+    final cardColor = (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
+    final iconBgDefault = theme.colorScheme.surfaceContainerHighest;
 
     return GestureDetector(
       onTap: onTap,
@@ -384,7 +376,7 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   Widget _buildSystemStats(ThemeData theme, bool isDark) {
-    final cardColor = isDark ? const Color(0xFF1A1C1E) : AppTheme.surfaceContainerLow;
+    final cardColor = isDark ? theme.colorScheme.surface : AppTheme.surfaceContainerLow;
     return Row(
       children: [
         Expanded(

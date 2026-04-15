@@ -68,14 +68,15 @@ void main() {
     });
 
     testWidgets('completionColor가 달성률에 따라 다르다', (tester) async {
+      const colorScheme = ColorScheme.light();
       // 0% - 빈 셀
-      expect(DayCell.completionColor(0.0, isLight: true), isNotNull);
+      expect(DayCell.completionColor(0.0, colorScheme: colorScheme), isNotNull);
       // 100% - primary full
-      expect(DayCell.completionColor(1.0, isLight: true), isNotNull);
+      expect(DayCell.completionColor(1.0, colorScheme: colorScheme), isNotNull);
       // 다른 달성률은 다른 색상 반환
       expect(
-        DayCell.completionColor(0.0, isLight: true),
-        isNot(equals(DayCell.completionColor(1.0, isLight: true))),
+        DayCell.completionColor(0.0, colorScheme: colorScheme),
+        isNot(equals(DayCell.completionColor(1.0, colorScheme: colorScheme))),
       );
     });
   });

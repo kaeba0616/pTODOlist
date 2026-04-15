@@ -243,24 +243,32 @@ class _RoutineFormViewState extends State<RoutineFormView> {
               ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            ..._subtasks.asMap().entries.map((entry) {
-              return ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(
-                  Icons.subdirectory_arrow_right,
-                  size: 18,
-                  color: Colors.grey[500],
+            if (_subtasks.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  '세부 항목을 추가하면 루틴을 더 세분화할 수 있어요',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                title: Text(entry.value),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close, size: 18),
-                  onPressed: () {
-                    setState(() => _subtasks.removeAt(entry.key));
-                  },
+              ),
+            if (_subtasks.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _subtasks.asMap().entries.map((entry) {
+                    return Chip(
+                      label: Text(entry.value),
+                      deleteIcon: const Icon(Icons.close, size: 16),
+                      onDeleted: () {
+                        setState(() => _subtasks.removeAt(entry.key));
+                      },
+                      visualDensity: VisualDensity.compact,
+                    );
+                  }).toList(),
                 ),
-              );
-            }),
+              ),
             Row(
               children: [
                 Expanded(

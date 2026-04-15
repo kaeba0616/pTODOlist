@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -48,8 +49,42 @@ Future<void> backgroundCallback(Uri? uri) async {
   }
 }
 
-class PtodolistApp extends StatelessWidget {
+class PtodolistApp extends StatefulWidget {
   const PtodolistApp({super.key});
+
+  @override
+  State<PtodolistApp> createState() => _PtodolistAppState();
+}
+
+class _PtodolistAppState extends State<PtodolistApp> {
+  late ThemeMode _themeMode;
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _themeMode = _loadThemeMode();
+    _router = buildAppRouter(onThemeChanged: _onThemeChanged);
+  }
+
+  ThemeMode _loadThemeMode() {
+    const useMock = String.fromEnvironment('USE_MOCK') == 'true';
+    if (useMock) return ThemeMode.system;
+    final box = Hive.box('appSettings');
+    final mode = box.get('themeMode', defaultValue: 'system') as String;
+    switch (mode) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  void _onThemeChanged(ThemeMode mode) {
+    setState(() => _themeMode = mode);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +92,8 @@ class PtodolistApp extends StatelessWidget {
       title: 'pTODOlist',
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
-      themeMode: ThemeMode.system,
-      routerConfig: appRouter,
+      themeMode: _themeMode,
+      routerConfig: _router,
       debugShowCheckedModeBanner: false,
     );
   }

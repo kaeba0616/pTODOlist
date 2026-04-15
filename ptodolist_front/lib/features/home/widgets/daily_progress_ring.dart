@@ -18,9 +18,9 @@ class DailyProgressRing extends StatelessWidget {
   double get _progress => total == 0 ? 0.0 : completed / total;
   int get _percent => (_progress * 100).round();
 
-  Color _progressColor(bool isDark) {
-    if (_progress >= 1.0) return AppTheme.primary;
-    if (_progress >= 0.5) return isDark ? const Color(0xFFB1F0CE) : AppTheme.primary;
+  Color _progressColor(ColorScheme colorScheme) {
+    if (_progress >= 1.0) return colorScheme.primary;
+    if (_progress >= 0.5) return colorScheme.primary;
     return AppTheme.tertiary;
   }
 
@@ -28,11 +28,9 @@ class DailyProgressRing extends StatelessWidget {
   Widget build(BuildContext context) {
     if (total == 0) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color = _progressColor(isDark);
-    final trackColor = isDark
-        ? const Color(0xFF22252A)
-        : AppTheme.surfaceContainerHighest;
+    final theme = Theme.of(context);
+    final color = _progressColor(theme.colorScheme);
+    final trackColor = theme.colorScheme.surfaceContainerHigh;
 
     return SizedBox(
       width: size,

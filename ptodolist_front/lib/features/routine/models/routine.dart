@@ -9,6 +9,7 @@ class Routine {
   final int priority; // 0=낮음, 1=보통, 2=높음
   final int? iconCodePoint; // Material Icon codePoint, null=기본
   final List<int> activeDays; // 1=월~7=일, []=매일
+  final String? deletedAt; // yyyy-MM-dd, null=삭제 안됨
 
   const Routine({
     required this.id,
@@ -21,7 +22,10 @@ class Routine {
     this.priority = 1,
     this.iconCodePoint,
     this.activeDays = const [],
+    this.deletedAt,
   });
+
+  bool get isDeleted => deletedAt != null;
 
   /// 해당 요일에 활성인지 확인 (weekday: 1=월~7=일)
   bool isActiveOnDay(int weekday) {
@@ -40,6 +44,7 @@ class Routine {
     int? priority,
     int? Function()? iconCodePoint,
     List<int>? activeDays,
+    String? Function()? deletedAt,
   }) {
     return Routine(
       id: id ?? this.id,
@@ -54,6 +59,7 @@ class Routine {
           ? iconCodePoint()
           : this.iconCodePoint,
       activeDays: activeDays ?? this.activeDays,
+      deletedAt: deletedAt != null ? deletedAt() : this.deletedAt,
     );
   }
 

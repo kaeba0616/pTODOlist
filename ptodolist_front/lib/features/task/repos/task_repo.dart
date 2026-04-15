@@ -52,21 +52,22 @@ class TaskRepository {
     return _box!.get(id);
   }
 
-  void update(AdditionalTask task) {
+  Future<void> update(AdditionalTask task) async {
     if (useMock) {
       final index = _mockData.indexWhere((t) => t.id == task.id);
       if (index != -1) _mockData[index] = task;
     } else {
-      _box!.put(task.id, task);
+      await _box!.put(task.id, task);
+      await _box!.flush();
     }
   }
 
-  String add({
+  Future<String> add({
     required String title,
     required String categoryId,
     String? targetDate,
     List<String> subtasks = const [],
-  }) {
+  }) async {
     final id = _uuid.v4();
     final task = AdditionalTask(
       id: id,
@@ -80,12 +81,13 @@ class TaskRepository {
     if (useMock) {
       _mockData.add(task);
     } else {
-      _box!.put(id, task);
+      await _box!.put(id, task);
+      await _box!.flush();
     }
     return id;
   }
 
-  void toggleComplete(String id) {
+  Future<void> toggleComplete(String id) async {
     final task = getById(id);
     if (task == null) return;
     final updated = task.copyWith(isCompleted: !task.isCompleted);
@@ -93,7 +95,8 @@ class TaskRepository {
       final index = _mockData.indexWhere((t) => t.id == id);
       if (index != -1) _mockData[index] = updated;
     } else {
-      _box!.put(id, updated);
+      await _box!.put(id, updated);
+      await _box!.flush();
     }
   }
 

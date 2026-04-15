@@ -72,7 +72,7 @@ class _CalendarViewState extends State<CalendarView> {
     final date = DateTime(_displayedMonth.year, _displayedMonth.month, day);
     final dateStr = _dateFmt.format(date);
     final record = widget.dailyRecordRepo.get(dateStr);
-    final routines = widget.routineRepo.getAll();
+    final routines = widget.routineRepo.getAllIncludingDeleted();
     final tasks = widget.taskRepo.getAll().where((t) => t.targetDate == dateStr).toList();
     final categories = widget.categoryRepo.getAll();
 

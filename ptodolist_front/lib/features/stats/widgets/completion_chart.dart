@@ -17,7 +17,7 @@ class CompletionChart extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final barColor = theme.colorScheme.primary;
     final trackColor = isDark
-        ? const Color(0xFF2E3238)
+        ? theme.colorScheme.surfaceContainerHighest
         : AppTheme.primaryContainer.withValues(alpha: 0.4);
 
     return BarChart(

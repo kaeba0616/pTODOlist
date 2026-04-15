@@ -42,8 +42,8 @@ class AddBottomSheet extends StatelessWidget {
               isDark: isDark,
               theme: theme,
               icon: Icons.repeat,
-              iconBg: isDark ? const Color(0xFF005050) : AppTheme.primaryContainer,
-              iconColor: isDark ? const Color(0xFFB1F0CE) : AppTheme.onPrimaryContainer,
+              iconBg: theme.colorScheme.primaryContainer,
+              iconColor: theme.colorScheme.onPrimaryContainer,
               title: '루틴 추가',
               subtitle: '매일 반복하는 할 일',
               onTap: () => Navigator.pop(context, AddType.routine),
@@ -55,7 +55,7 @@ class AddBottomSheet extends StatelessWidget {
               isDark: isDark,
               theme: theme,
               icon: Icons.check_circle_outline,
-              iconBg: isDark ? const Color(0xFF2E3238) : AppTheme.surfaceContainerHigh,
+              iconBg: theme.colorScheme.surfaceContainerHighest,
               iconColor: theme.colorScheme.onSurfaceVariant,
               title: '할 일 추가',
               subtitle: '오늘만 할 일',
@@ -78,7 +78,7 @@ class AddBottomSheet extends StatelessWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    final cardBg = isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerLowest;
+    final cardBg = (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
 
     return GestureDetector(
       onTap: onTap,

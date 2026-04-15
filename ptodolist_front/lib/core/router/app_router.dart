@@ -4,6 +4,7 @@ import 'package:ptodolist/features/home/views/home_view.dart';
 import 'package:ptodolist/features/calendar/views/calendar_view.dart';
 import 'package:ptodolist/features/stats/views/stats_view.dart';
 import 'package:ptodolist/features/settings/views/settings_view.dart';
+import 'package:ptodolist/features/settings/repos/settings_repo.dart';
 import 'package:ptodolist/features/category/views/category_list_view.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
 import 'package:ptodolist/features/category/models/category.dart';
@@ -18,7 +19,7 @@ import 'package:hive/hive.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-final appRouter = GoRouter(
+GoRouter buildAppRouter({required ValueChanged<ThemeMode> onThemeChanged}) => GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/',
   routes: [
@@ -134,7 +135,16 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/settings',
-              builder: (context, state) => const SettingsView(),
+              builder: (context, state) {
+                const useMock = String.fromEnvironment('USE_MOCK') == 'true';
+                final settingsRepo = useMock
+                    ? SettingsRepository(useMock: true)
+                    : SettingsRepository(box: Hive.box('appSettings'));
+                return SettingsView(
+                  settingsRepo: settingsRepo,
+                  onThemeChanged: onThemeChanged,
+                );
+              },
               routes: [
                 GoRoute(
                   path: 'categories',

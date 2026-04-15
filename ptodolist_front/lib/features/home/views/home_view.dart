@@ -66,6 +66,17 @@ class _HomeViewState extends State<HomeView> {
   List<Routine> get _activeRoutines =>
       widget.routineRepo.getActiveForDay(DateTime.now().weekday);
 
+  List<Routine> get _sortedRoutines {
+    final routines = List<Routine>.from(_activeRoutines);
+    routines.sort((a, b) {
+      final aDone = _dailyRecord.isRoutineCompleted(a.id);
+      final bDone = _dailyRecord.isRoutineCompleted(b.id);
+      if (aDone != bDone) return aDone ? 1 : -1;
+      return a.order.compareTo(b.order);
+    });
+    return routines;
+  }
+
   List<AdditionalTask> get _todayTasks {
     final tasks = widget.taskRepo.getTodayAndOverdue(_today);
     tasks.sort((a, b) {
@@ -124,53 +135,56 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> _editRoutine(Routine routine) async {
+    final freshRoutine = widget.routineRepo.getById(routine.id) ?? routine;
     final categories = widget.categoryRepo.getAll();
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => RoutineFormView(routine: routine, categories: categories),
+      builder: (_) => RoutineFormView(routine: freshRoutine, categories: categories),
     );
     if (result != null && mounted) {
-      setState(() {
-        final updated = routine.copyWith(
-          title: result['title'],
-          categoryId: result['categoryId'],
-          isActive: result['isActive'],
-          subtasks: List<String>.from(result['subtasks'] ?? []),
-          priority: result['priority'] ?? routine.priority,
-          iconCodePoint: () => result['iconCodePoint'] as int?,
-          activeDays: List<int>.from(result['activeDays'] ?? routine.activeDays),
-        );
-        widget.routineRepo.update(updated);
-        if (!updated.isActive) {
-          final completions = Map<String, bool>.from(
-            _dailyRecord.routineCompletions,
-          );
-          completions.remove(updated.id);
-          _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
-          widget.dailyRecordRepo?.save(_dailyRecord);
-        }
-      });
+      final updated = freshRoutine.copyWith(
+        title: result['title'],
+        categoryId: result['categoryId'],
+        isActive: result['isActive'],
+        subtasks: List<String>.from(result['subtasks'] ?? []),
+        priority: result['priority'] ?? freshRoutine.priority,
+        iconCodePoint: () => result['iconCodePoint'] as int?,
+        activeDays: List<int>.from(result['activeDays'] ?? freshRoutine.activeDays),
+      );
+      await widget.routineRepo.update(updated);
+      if (mounted) {
+        setState(() {
+          if (!updated.isActive) {
+            final completions = Map<String, bool>.from(
+              _dailyRecord.routineCompletions,
+            );
+            completions.remove(updated.id);
+            _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
+            widget.dailyRecordRepo?.save(_dailyRecord);
+          }
+        });
+      }
     }
   }
 
   Future<void> _editTask(AdditionalTask task) async {
+    final freshTask = widget.taskRepo.getById(task.id) ?? task;
     final categories = widget.categoryRepo.getAll();
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => TaskFormView(task: task, categories: categories),
+      builder: (_) => TaskFormView(task: freshTask, categories: categories),
     );
     if (result != null && mounted) {
-      setState(() {
-        final updated = task.copyWith(
-          title: result['title'],
-          categoryId: result['categoryId'],
-          subtasks: List<String>.from(result['subtasks'] ?? []),
-          targetDate: result['targetDate'] as String?,
-        );
-        widget.taskRepo.update(updated);
-      });
+      final updated = freshTask.copyWith(
+        title: result['title'],
+        categoryId: result['categoryId'],
+        subtasks: List<String>.from(result['subtasks'] ?? []),
+        targetDate: result['targetDate'] as String?,
+      );
+      await widget.taskRepo.update(updated);
+      if (mounted) setState(() {});
     }
   }
 
@@ -190,21 +204,23 @@ class _HomeViewState extends State<HomeView> {
         builder: (_) => RoutineFormView(categories: categories),
       );
       if (result != null && mounted) {
-        setState(() {
-          final id = widget.routineRepo.add(
-            title: result['title'],
-            categoryId: result['categoryId'],
-            subtasks: List<String>.from(result['subtasks'] ?? []),
-            priority: result['priority'] ?? 1,
-            iconCodePoint: result['iconCodePoint'] as int?,
-            activeDays: List<int>.from(result['activeDays'] ?? []),
-          );
-          final updated = Map<String, bool>.from(
-            _dailyRecord.routineCompletions,
-          );
-          updated[id] = false;
-          _dailyRecord = _dailyRecord.copyWith(routineCompletions: updated);
-        });
+        final id = await widget.routineRepo.add(
+          title: result['title'],
+          categoryId: result['categoryId'],
+          subtasks: List<String>.from(result['subtasks'] ?? []),
+          priority: result['priority'] ?? 1,
+          iconCodePoint: result['iconCodePoint'] as int?,
+          activeDays: List<int>.from(result['activeDays'] ?? []),
+        );
+        if (mounted) {
+          setState(() {
+            final updated = Map<String, bool>.from(
+              _dailyRecord.routineCompletions,
+            );
+            updated[id] = false;
+            _dailyRecord = _dailyRecord.copyWith(routineCompletions: updated);
+          });
+        }
       }
     } else {
       final result = await showModalBottomSheet<Map<String, dynamic>>(
@@ -213,14 +229,13 @@ class _HomeViewState extends State<HomeView> {
         builder: (_) => TaskFormView(categories: categories),
       );
       if (result != null && mounted) {
-        setState(() {
-          widget.taskRepo.add(
-            title: result['title'],
-            categoryId: result['categoryId'],
-            subtasks: List<String>.from(result['subtasks'] ?? []),
-            targetDate: result['targetDate'] as String?,
-          );
-        });
+        await widget.taskRepo.add(
+          title: result['title'],
+          categoryId: result['categoryId'],
+          subtasks: List<String>.from(result['subtasks'] ?? []),
+          targetDate: result['targetDate'] as String?,
+        );
+        if (mounted) setState(() {});
       }
     }
   }
@@ -292,7 +307,7 @@ class _HomeViewState extends State<HomeView> {
             badgeTextColor: AppTheme.tertiary,
           ),
           const SizedBox(height: 12),
-          ..._activeRoutines.map((routine) {
+          ..._sortedRoutines.map((routine) {
             final isDone = _dailyRecord.isRoutineCompleted(routine.id);
             final category = _getCategoryFor(routine.categoryId);
             final streak = _getStreak(routine);
@@ -475,7 +490,7 @@ class _HomeViewState extends State<HomeView> {
   }) {
     final bgColor = isDone
         ? theme.colorScheme.primaryContainer.withValues(alpha: 0.2)
-        : (isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerLowest);
+        : (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
 
     return Dismissible(
       key: Key(routine.id),
@@ -510,23 +525,27 @@ class _HomeViewState extends State<HomeView> {
             children: [
               // Checkbox
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () => _toggleRoutine(routine.id),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: isDone ? theme.colorScheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                    border: isDone
-                        ? null
-                        : Border.all(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                            width: 2,
-                          ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: isDone ? theme.colorScheme.primary : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: isDone
+                          ? null
+                          : Border.all(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                              width: 2,
+                            ),
+                    ),
+                    child: isDone
+                        ? Icon(Icons.check, size: 16, color: theme.colorScheme.onPrimary)
+                        : null,
                   ),
-                  child: isDone
-                      ? Icon(Icons.check, size: 16, color: theme.colorScheme.onPrimary)
-                      : null,
                 ),
               ),
               const SizedBox(width: 12),
@@ -570,14 +589,14 @@ class _HomeViewState extends State<HomeView> {
                           if (streak >= 2) ...[
                             const Icon(
                               Icons.local_fire_department,
-                              color: Color(0xFFF59E0B),
+                              color: AppTheme.warning,
                               size: 13,
                             ),
                             Text(
                               ' $streak일 연속',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
-                                color: const Color(0xFFF59E0B),
+                                color: AppTheme.warning,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -611,7 +630,7 @@ class _HomeViewState extends State<HomeView> {
     required bool isDark,
     required ThemeData theme,
   }) {
-    final cardColor = isDark ? const Color(0xFF22252A) : AppTheme.surfaceContainerLowest;
+    final cardColor = (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
     final iconBg = category != null
         ? parseHexColor(category.color).withValues(alpha: 0.1)
         : theme.colorScheme.secondaryContainer;
