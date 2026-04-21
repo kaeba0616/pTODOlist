@@ -49,9 +49,6 @@ dependencies:
   file_picker: ^8.1.4
   path_provider: ^2.1.5
 
-  # Slide-to-reveal actions
-  flutter_slidable: ^3.1.2
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

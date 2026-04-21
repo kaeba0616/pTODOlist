@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
@@ -134,28 +133,6 @@ class _HomeViewState extends State<HomeView>
 
   Category? _getCategoryFor(String categoryId) {
     return widget.categoryRepo.getById(categoryId);
-  }
-
-  Future<bool> _showDeleteConfirm(String title) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('삭제'),
-        content: Text("'$title' 을(를) 삭제하시겠습니까?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
   }
 
   void _toggleRoutine(String routineId) {
@@ -795,151 +772,118 @@ class _HomeViewState extends State<HomeView>
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Slidable(
-        key: Key(routine.id),
-        groupTag: 'home-list',
-        endActionPane: ActionPane(
-          motion: const BehindMotion(),
-          extentRatio: 0.25,
-          children: [
-            SlidableAction(
-              onPressed: (_) async {
-                final ok = await _showDeleteConfirm(routine.title);
-                if (!ok || !mounted) return;
-                setState(() {
-                  widget.routineRepo.delete(routine.id);
-                  final updated = Map<String, bool>.from(
-                    _dailyRecord.routineCompletions,
-                  );
-                  updated.remove(routine.id);
-                  _dailyRecord = _dailyRecord.copyWith(
-                    routineCompletions: updated,
-                  );
-                });
-              },
-              backgroundColor: AppTheme.error,
-              foregroundColor: Colors.white,
-              icon: Icons.delete_outline,
-              label: '삭제',
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ],
-        ),
-        child: GestureDetector(
-          onTap: () => _editRoutine(routine),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                // Checkbox
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _toggleRoutine(routine.id),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: isDone
-                            ? theme.colorScheme.primary
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(6),
-                        border: isDone
-                            ? null
-                            : Border.all(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.3,
-                                ),
-                                width: 2,
-                              ),
-                      ),
-                      child: isDone
-                          ? Icon(
-                              Icons.check,
-                              size: 16,
-                              color: theme.colorScheme.onPrimary,
-                            )
-                          : null,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        routine.title,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isDone
-                              ? theme.colorScheme.onSurfaceVariant
-                              : theme.colorScheme.onSurface,
-                          decoration: isDone
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                      ),
-                      if (routine.subtasks.isNotEmpty || streak >= 2)
-                        const SizedBox(height: 2),
-                      if (routine.subtasks.isNotEmpty || streak >= 2)
-                        Row(
-                          children: [
-                            if (routine.subtasks.isNotEmpty)
-                              Text(
-                                '${routine.subtasks.length}개 하위작업',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            if (routine.subtasks.isNotEmpty && streak >= 2)
-                              Text(
-                                ' • ',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            if (streak >= 2) ...[
-                              const Icon(
-                                Icons.local_fire_department,
-                                color: AppTheme.warning,
-                                size: 13,
-                              ),
-                              Text(
-                                ' $streak일 연속',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: AppTheme.warning,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
-                // Category dot
-                if (category != null)
-                  Container(
-                    width: 10,
-                    height: 10,
+      child: GestureDetector(
+        onTap: () => _editRoutine(routine),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              // Checkbox
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _toggleRoutine(routine.id),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Container(
+                    width: 24,
+                    height: 24,
                     decoration: BoxDecoration(
-                      color: parseHexColor(category.color),
-                      shape: BoxShape.circle,
+                      color: isDone
+                          ? theme.colorScheme.primary
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: isDone
+                          ? null
+                          : Border.all(
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.3,
+                              ),
+                              width: 2,
+                            ),
                     ),
+                    child: isDone
+                        ? Icon(
+                            Icons.check,
+                            size: 16,
+                            color: theme.colorScheme.onPrimary,
+                          )
+                        : null,
                   ),
-              ],
-            ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      routine.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDone
+                            ? theme.colorScheme.onSurfaceVariant
+                            : theme.colorScheme.onSurface,
+                        decoration: isDone ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                    if (routine.subtasks.isNotEmpty || streak >= 2)
+                      const SizedBox(height: 2),
+                    if (routine.subtasks.isNotEmpty || streak >= 2)
+                      Row(
+                        children: [
+                          if (routine.subtasks.isNotEmpty)
+                            Text(
+                              '${routine.subtasks.length}개 하위작업',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          if (routine.subtasks.isNotEmpty && streak >= 2)
+                            Text(
+                              ' • ',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          if (streak >= 2) ...[
+                            const Icon(
+                              Icons.local_fire_department,
+                              color: AppTheme.warning,
+                              size: 13,
+                            ),
+                            Text(
+                              ' $streak일 연속',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.warning,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              // Category dot
+              if (category != null)
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: parseHexColor(category.color),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -964,195 +908,171 @@ class _HomeViewState extends State<HomeView>
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Slidable(
-        key: Key(task.id),
-        groupTag: 'home-list',
-        endActionPane: ActionPane(
-          motion: const BehindMotion(),
-          extentRatio: 0.25,
-          children: [
-            SlidableAction(
-              onPressed: (_) async {
-                final ok = await _showDeleteConfirm(task.title);
-                if (!ok || !mounted) return;
-                setState(() {
-                  widget.taskRepo.delete(task.id);
-                });
-              },
-              backgroundColor: AppTheme.error,
-              foregroundColor: Colors.white,
-              icon: Icons.delete_outline,
-              label: '삭제',
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ],
-        ),
-        child: GestureDetector(
-          onTap: () => _editTask(task),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    // Icon circle
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: iconBg,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        task.isCompleted
-                            ? Icons.check
-                            : Icons.assignment_outlined,
-                        color: iconColor,
-                        size: 20,
-                      ),
+      child: GestureDetector(
+        onTap: () => _editTask(task),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Icon circle
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: iconBg,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 12),
-                    // Content
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            task.title,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: task.isCompleted
-                                  ? theme.colorScheme.onSurfaceVariant
-                                  : theme.colorScheme.onSurface,
-                              decoration: task.isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                            ),
-                          ),
-                          if (overdueDays > 0 || task.subtasks.isNotEmpty)
-                            Row(
-                              children: [
-                                if (overdueDays > 0)
-                                  Text(
-                                    'D+$overdueDays',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 11,
-                                      color: AppTheme.error,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                if (overdueDays > 0 && task.subtasks.isNotEmpty)
-                                  Text(
-                                    ' • ',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                if (task.subtasks.isNotEmpty)
-                                  Text(
-                                    '${_completedSubtaskCount(task)}/${task.subtasks.length} 세부 항목',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 11,
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                        ],
-                      ),
+                    child: Icon(
+                      task.isCompleted
+                          ? Icons.check
+                          : Icons.assignment_outlined,
+                      color: iconColor,
+                      size: 20,
                     ),
-                    // Completion circle
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _toggleTask(task.id),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: task.isCompleted
-                                ? theme.colorScheme.primary
-                                : Colors.transparent,
-                            shape: BoxShape.circle,
-                            border: task.isCompleted
-                                ? null
-                                : Border.all(
-                                    color: theme.colorScheme.outlineVariant
-                                        .withValues(alpha: 0.5),
-                                    width: 2,
-                                  ),
-                          ),
-                          child: task.isCompleted
-                              ? Icon(
-                                  Icons.check,
-                                  size: 16,
-                                  color: theme.colorScheme.onPrimary,
-                                )
-                              : null,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (task.subtasks.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 52),
+                  ),
+                  const SizedBox(width: 12),
+                  // Content
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: task.subtasks.asMap().entries.map((entry) {
-                        final i = entry.key;
-                        final title = entry.value;
-                        final done = task.isSubtaskCompleted(i);
-                        return InkWell(
-                          onTap: () => _toggleSubtask(task.id, i),
-                          borderRadius: BorderRadius.circular(6),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  done
-                                      ? Icons.check_box
-                                      : Icons.check_box_outline_blank,
-                                  size: 18,
-                                  color: done
-                                      ? theme.colorScheme.primary
-                                      : theme.colorScheme.outlineVariant,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    title,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      color: done
-                                          ? theme.colorScheme.onSurfaceVariant
-                                          : theme.colorScheme.onSurface,
-                                      decoration: done
-                                          ? TextDecoration.lineThrough
-                                          : null,
-                                    ),
+                      children: [
+                        Text(
+                          task.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: task.isCompleted
+                                ? theme.colorScheme.onSurfaceVariant
+                                : theme.colorScheme.onSurface,
+                            decoration: task.isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
+                          ),
+                        ),
+                        if (overdueDays > 0 || task.subtasks.isNotEmpty)
+                          Row(
+                            children: [
+                              if (overdueDays > 0)
+                                Text(
+                                  'D+$overdueDays',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppTheme.error,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                              ],
-                            ),
+                              if (overdueDays > 0 && task.subtasks.isNotEmpty)
+                                Text(
+                                  ' • ',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              if (task.subtasks.isNotEmpty)
+                                Text(
+                                  '${_completedSubtaskCount(task)}/${task.subtasks.length} 세부 항목',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
                           ),
-                        );
-                      }).toList(),
+                      ],
+                    ),
+                  ),
+                  // Completion circle
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _toggleTask(task.id),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: task.isCompleted
+                              ? theme.colorScheme.primary
+                              : Colors.transparent,
+                          shape: BoxShape.circle,
+                          border: task.isCompleted
+                              ? null
+                              : Border.all(
+                                  color: theme.colorScheme.outlineVariant
+                                      .withValues(alpha: 0.5),
+                                  width: 2,
+                                ),
+                        ),
+                        child: task.isCompleted
+                            ? Icon(
+                                Icons.check,
+                                size: 16,
+                                color: theme.colorScheme.onPrimary,
+                              )
+                            : null,
+                      ),
                     ),
                   ),
                 ],
+              ),
+              if (task.subtasks.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 52),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: task.subtasks.asMap().entries.map((entry) {
+                      final i = entry.key;
+                      final title = entry.value;
+                      final done = task.isSubtaskCompleted(i);
+                      return InkWell(
+                        onTap: () => _toggleSubtask(task.id, i),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                done
+                                    ? Icons.check_box
+                                    : Icons.check_box_outline_blank,
+                                size: 18,
+                                color: done
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.outlineVariant,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: done
+                                        ? theme.colorScheme.onSurfaceVariant
+                                        : theme.colorScheme.onSurface,
+                                    decoration: done
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ),
@@ -1189,153 +1109,130 @@ class _HomeViewState extends State<HomeView>
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Slidable(
-        key: Key('upcoming-${task.id}'),
-        groupTag: 'home-list',
-        endActionPane: ActionPane(
-          motion: const BehindMotion(),
-          extentRatio: 0.25,
-          children: [
-            SlidableAction(
-              onPressed: (_) async {
-                final ok = await _showDeleteConfirm(task.title);
-                if (!ok || !mounted) return;
-                setState(() {
-                  widget.taskRepo.delete(task.id);
-                });
-              },
-              backgroundColor: AppTheme.error,
-              foregroundColor: Colors.white,
-              icon: Icons.delete_outline,
-              label: '삭제',
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ],
-        ),
-        child: GestureDetector(
-          onTap: () => _editTask(task),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: iconBg,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.event_outlined,
-                        color: iconColor,
-                        size: 20,
-                      ),
+      child: GestureDetector(
+        onTap: () => _editTask(task),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: iconBg,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            task.title,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
-                          if (task.subtasks.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              '${task.subtasks.length}개 세부 항목',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+                    child: Icon(
+                      Icons.event_outlined,
+                      color: iconColor,
+                      size: 20,
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer
-                                .withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(9999),
-                          ),
-                          child: Text(
-                            dateLabel,
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.primary,
-                            ),
+                        Text(
+                          task.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
-                        if (daysLeft > 0) ...[
-                          const SizedBox(height: 4),
+                        if (task.subtasks.isNotEmpty) ...[
+                          const SizedBox(height: 2),
                           Text(
-                            'D-$daysLeft',
+                            '${task.subtasks.length}개 세부 항목',
                             style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
                       ],
                     ),
-                  ],
-                ),
-                if (task.subtasks.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 52),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: task.subtasks.map((title) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.check_box_outline_blank,
-                                size: 18,
-                                color: theme.colorScheme.outlineVariant,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  title,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                ),
-                              ),
-                            ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer.withValues(
+                            alpha: 0.5,
                           ),
-                        );
-                      }).toList(),
-                    ),
+                          borderRadius: BorderRadius.circular(9999),
+                        ),
+                        child: Text(
+                          dateLabel,
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      if (daysLeft > 0) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'D-$daysLeft',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
+              ),
+              if (task.subtasks.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 52),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: task.subtasks.map((title) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.check_box_outline_blank,
+                              size: 18,
+                              color: theme.colorScheme.outlineVariant,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ),
