@@ -41,6 +41,16 @@ class TaskRepository {
     return [...overdue, ...todayTasks];
   }
 
+  List<AdditionalTask> getUpcoming(String today) {
+    return getAll()
+        .where((t) => t.targetDate.compareTo(today) > 0)
+        .toList()
+      ..sort((a, b) {
+        final d = a.targetDate.compareTo(b.targetDate);
+        return d != 0 ? d : a.order.compareTo(b.order);
+      });
+  }
+
   AdditionalTask? getById(String id) {
     if (useMock) {
       try {
@@ -90,12 +100,48 @@ class TaskRepository {
   Future<void> toggleComplete(String id) async {
     final task = getById(id);
     if (task == null) return;
-    final updated = task.copyWith(isCompleted: !task.isCompleted);
+    final newCompleted = !task.isCompleted;
+    // 상위 토글 시 모든 서브태스크도 같은 상태로 동기화
+    final newSubCompletions = task.subtasks.isEmpty
+        ? const <bool>[]
+        : List<bool>.filled(task.subtasks.length, newCompleted);
+    final updated = task.copyWith(
+      isCompleted: newCompleted,
+      subtaskCompletions: newSubCompletions,
+    );
     if (useMock) {
       final index = _mockData.indexWhere((t) => t.id == id);
       if (index != -1) _mockData[index] = updated;
     } else {
       await _box!.put(id, updated);
+      await _box!.flush();
+    }
+  }
+
+  Future<void> toggleSubtask(String taskId, int index) async {
+    final task = getById(taskId);
+    if (task == null) return;
+    if (index < 0 || index >= task.subtasks.length) return;
+
+    final completions = List<bool>.from(task.subtaskCompletions);
+    while (completions.length < task.subtasks.length) {
+      completions.add(false);
+    }
+    if (completions.length > task.subtasks.length) {
+      completions.removeRange(task.subtasks.length, completions.length);
+    }
+    completions[index] = !completions[index];
+
+    final allDone = completions.every((c) => c);
+    final updated = task.copyWith(
+      subtaskCompletions: completions,
+      isCompleted: allDone,
+    );
+    if (useMock) {
+      final idx = _mockData.indexWhere((t) => t.id == taskId);
+      if (idx != -1) _mockData[idx] = updated;
+    } else {
+      await _box!.put(taskId, updated);
       await _box!.flush();
     }
   }

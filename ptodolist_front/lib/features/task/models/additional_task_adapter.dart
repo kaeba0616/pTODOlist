@@ -22,13 +22,16 @@ class AdditionalTaskAdapter extends TypeAdapter<AdditionalTask> {
       subtasks: fields.containsKey(7)
           ? List<String>.from(fields[7] as List)
           : const [],
+      subtaskCompletions: fields.containsKey(8)
+          ? List<bool>.from(fields[8] as List)
+          : const [],
     );
   }
 
   @override
   void write(BinaryWriter writer, AdditionalTask obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,6 +47,8 @@ class AdditionalTaskAdapter extends TypeAdapter<AdditionalTask> {
       ..writeByte(6)
       ..write(obj.order)
       ..writeByte(7)
-      ..write(obj.subtasks);
+      ..write(obj.subtasks)
+      ..writeByte(8)
+      ..write(obj.subtaskCompletions);
   }
 }

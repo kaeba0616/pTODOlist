@@ -60,8 +60,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 홈 탭 (기본)
-      expect(find.text('오늘의 루틴'), findsOneWidget);
+      // 홈 탭 (기본): 3탭 라벨 중 '루틴' 존재 확인
+      expect(find.text('루틴'), findsWidgets);
+      expect(find.text('오늘'), findsWidgets);
+      expect(find.text('예정'), findsWidgets);
 
       // 통계 탭
       await tester.tap(find.text('통계'));
