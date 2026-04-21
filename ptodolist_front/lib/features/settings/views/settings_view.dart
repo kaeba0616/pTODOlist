@@ -1,8 +1,13 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ptodolist/core/db/backup_service.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/features/settings/repos/settings_repo.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SettingsView extends StatefulWidget {
   final SettingsRepository? settingsRepo;
@@ -173,6 +178,38 @@ class _SettingsViewState extends State<SettingsView> {
             title: '테마',
             subtitle: _themeLabel(_themeMode),
             onTap: () => _showThemePicker(theme),
+          ),
+
+          // Backup section
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 12),
+            child: Text(
+              'BACKUP',
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.onSurfaceVariant,
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+          _buildSettingItem(
+            theme: theme,
+            isDark: isDark,
+            icon: Icons.upload_outlined,
+            title: '데이터 내보내기',
+            subtitle: 'JSON 파일로 백업 공유',
+            onTap: _exportBackup,
+          ),
+          const SizedBox(height: 8),
+          _buildSettingItem(
+            theme: theme,
+            isDark: isDark,
+            icon: Icons.download_outlined,
+            title: '데이터 가져오기',
+            subtitle: '백업 파일에서 복원 (기존 데이터 대체)',
+            onTap: _importBackup,
           ),
 
           // Danger zone
@@ -534,6 +571,66 @@ class _SettingsViewState extends State<SettingsView> {
         ),
       ),
     );
+  }
+
+  Future<void> _exportBackup() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final file = await BackupService().writeExportToFile();
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/json')],
+        subject: 'pTODOlist 백업',
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('내보내기 실패: $e')),
+      );
+    }
+  }
+
+  Future<void> _importBackup() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+    if (result == null || result.files.single.path == null) return;
+    if (!mounted) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('데이터 가져오기'),
+        content: const Text('백업 파일을 불러오면 기존 데이터가 모두 대체됩니다. 계속하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+            child: const Text('가져오기'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    try {
+      final file = File(result.files.single.path!);
+      final json = await file.readAsString();
+      await BackupService().importFromJson(json);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(content: Text('가져오기 완료. 앱을 재시작해주세요.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('가져오기 실패: $e')),
+      );
+    }
   }
 
   void _showResetConfirm(ThemeData theme) {

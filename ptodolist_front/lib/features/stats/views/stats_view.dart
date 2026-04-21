@@ -100,15 +100,15 @@ class _StatsViewState extends State<StatsView> {
   }
 
   double _getWeeklyRate() {
+    // 기록 없는 날은 0%로 간주해 7일 기준 평균을 낸다.
+    // 예전엔 기록 있는 날만 평균 → 하루만 체크해도 100%로 보이는 버그가 있었음.
     final records = _getRecords(7);
     if (records.isEmpty) return 0;
-    int total = 0;
-    int done = 0;
+    double sum = 0;
     for (final r in records) {
-      total += r.routineCompletions.length;
-      done += r.completedCount;
+      sum += r.completionRate;
     }
-    return total == 0 ? 0 : done / total;
+    return sum / 7;
   }
 
   @override

@@ -7,6 +7,7 @@ class AdditionalTask {
   final bool isCompleted;
   final int order;
   final List<String> subtasks;
+  final List<bool> subtaskCompletions;
 
   const AdditionalTask({
     required this.id,
@@ -17,7 +18,21 @@ class AdditionalTask {
     this.isCompleted = false,
     this.order = 0,
     this.subtasks = const [],
+    this.subtaskCompletions = const [],
   });
+
+  bool isSubtaskCompleted(int index) {
+    if (index < 0 || index >= subtaskCompletions.length) return false;
+    return subtaskCompletions[index];
+  }
+
+  bool get areAllSubtasksCompleted {
+    if (subtasks.isEmpty) return false;
+    for (int i = 0; i < subtasks.length; i++) {
+      if (!isSubtaskCompleted(i)) return false;
+    }
+    return true;
+  }
 
   AdditionalTask copyWith({
     String? id,
@@ -28,6 +43,7 @@ class AdditionalTask {
     bool? isCompleted,
     int? order,
     List<String>? subtasks,
+    List<bool>? subtaskCompletions,
   }) {
     return AdditionalTask(
       id: id ?? this.id,
@@ -38,6 +54,7 @@ class AdditionalTask {
       isCompleted: isCompleted ?? this.isCompleted,
       order: order ?? this.order,
       subtasks: subtasks ?? this.subtasks,
+      subtaskCompletions: subtaskCompletions ?? this.subtaskCompletions,
     );
   }
 
@@ -57,6 +74,12 @@ class AdditionalTask {
     for (int i = 0; i < subtasks.length; i++) {
       if (subtasks[i] != other.subtasks[i]) return false;
     }
+    if (subtaskCompletions.length != other.subtaskCompletions.length) {
+      return false;
+    }
+    for (int i = 0; i < subtaskCompletions.length; i++) {
+      if (subtaskCompletions[i] != other.subtaskCompletions[i]) return false;
+    }
     return true;
   }
 
@@ -69,5 +92,6 @@ class AdditionalTask {
     isCompleted,
     order,
     Object.hashAll(subtasks),
+    Object.hashAll(subtaskCompletions),
   );
 }

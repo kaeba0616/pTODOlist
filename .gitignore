@@ -36,3 +36,7 @@ coverage/
 # Secrets
 .env
 *.keystore
+
+# Dev tooling (not part of project)
+.playwright-mcp/
+.stitch-designs/
