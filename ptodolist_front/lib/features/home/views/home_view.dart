@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
@@ -38,14 +39,26 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView>
+    with SingleTickerProviderStateMixin {
   late DailyRecord _dailyRecord;
+  late final TabController _tabController;
   final _today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _initDailyRecord();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _initDailyRecord() {
@@ -92,6 +105,9 @@ class _HomeViewState extends State<HomeView> {
     return tasks;
   }
 
+  List<AdditionalTask> get _upcomingTasks =>
+      widget.taskRepo.getUpcoming(_today);
+
   int get _totalCount => _activeRoutines.length + _todayTasks.length;
 
   int get _completedCount {
@@ -103,8 +119,9 @@ class _HomeViewState extends State<HomeView> {
   int _getStreak(Routine routine) {
     if (widget.dailyRecordRepo == null) return 0;
     final records = widget.dailyRecordRepo!.getRecordsInRange(
-      DateFormat('yyyy-MM-dd')
-          .format(DateTime.now().subtract(const Duration(days: 365))),
+      DateFormat(
+        'yyyy-MM-dd',
+      ).format(DateTime.now().subtract(const Duration(days: 365))),
       _today,
     );
     return StreakCalculator.currentStreak(
@@ -117,6 +134,28 @@ class _HomeViewState extends State<HomeView> {
 
   Category? _getCategoryFor(String categoryId) {
     return widget.categoryRepo.getById(categoryId);
+  }
+
+  Future<bool> _showDeleteConfirm(String title) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('삭제'),
+        content: Text("'$title' 을(를) 삭제하시겠습니까?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   void _toggleRoutine(String routineId) {
@@ -134,37 +173,60 @@ class _HomeViewState extends State<HomeView> {
     widget.homeWidgetService?.updateWidgetData();
   }
 
+  Future<void> _toggleSubtask(String taskId, int index) async {
+    await widget.taskRepo.toggleSubtask(taskId, index);
+    if (mounted) setState(() {});
+    widget.homeWidgetService?.updateWidgetData();
+  }
+
   Future<void> _editRoutine(Routine routine) async {
     final freshRoutine = widget.routineRepo.getById(routine.id) ?? routine;
     final categories = widget.categoryRepo.getAll();
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => RoutineFormView(routine: freshRoutine, categories: categories),
+      builder: (_) =>
+          RoutineFormView(routine: freshRoutine, categories: categories),
     );
-    if (result != null && mounted) {
-      final updated = freshRoutine.copyWith(
-        title: result['title'],
-        categoryId: result['categoryId'],
-        isActive: result['isActive'],
-        subtasks: List<String>.from(result['subtasks'] ?? []),
-        priority: result['priority'] ?? freshRoutine.priority,
-        iconCodePoint: () => result['iconCodePoint'] as int?,
-        activeDays: List<int>.from(result['activeDays'] ?? freshRoutine.activeDays),
-      );
-      await widget.routineRepo.update(updated);
-      if (mounted) {
-        setState(() {
-          if (!updated.isActive) {
-            final completions = Map<String, bool>.from(
-              _dailyRecord.routineCompletions,
-            );
-            completions.remove(updated.id);
-            _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
-            widget.dailyRecordRepo?.save(_dailyRecord);
-          }
-        });
-      }
+    if (result == null || !mounted) return;
+
+    if (result['_action'] == 'delete') {
+      widget.routineRepo.delete(freshRoutine.id);
+      setState(() {
+        final completions = Map<String, bool>.from(
+          _dailyRecord.routineCompletions,
+        );
+        completions.remove(freshRoutine.id);
+        _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
+        widget.dailyRecordRepo?.save(_dailyRecord);
+      });
+      widget.homeWidgetService?.updateWidgetData();
+      return;
+    }
+
+    final updated = freshRoutine.copyWith(
+      title: result['title'],
+      categoryId: result['categoryId'],
+      isActive: result['isActive'],
+      subtasks: List<String>.from(result['subtasks'] ?? []),
+      priority: result['priority'] ?? freshRoutine.priority,
+      iconCodePoint: () => result['iconCodePoint'] as int?,
+      activeDays: List<int>.from(
+        result['activeDays'] ?? freshRoutine.activeDays,
+      ),
+    );
+    await widget.routineRepo.update(updated);
+    if (mounted) {
+      setState(() {
+        if (!updated.isActive) {
+          final completions = Map<String, bool>.from(
+            _dailyRecord.routineCompletions,
+          );
+          completions.remove(updated.id);
+          _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
+          widget.dailyRecordRepo?.save(_dailyRecord);
+        }
+      });
     }
   }
 
@@ -176,16 +238,23 @@ class _HomeViewState extends State<HomeView> {
       isScrollControlled: true,
       builder: (_) => TaskFormView(task: freshTask, categories: categories),
     );
-    if (result != null && mounted) {
-      final updated = freshTask.copyWith(
-        title: result['title'],
-        categoryId: result['categoryId'],
-        subtasks: List<String>.from(result['subtasks'] ?? []),
-        targetDate: result['targetDate'] as String?,
-      );
-      await widget.taskRepo.update(updated);
-      if (mounted) setState(() {});
+    if (result == null || !mounted) return;
+
+    if (result['_action'] == 'delete') {
+      widget.taskRepo.delete(freshTask.id);
+      setState(() {});
+      widget.homeWidgetService?.updateWidgetData();
+      return;
     }
+
+    final updated = freshTask.copyWith(
+      title: result['title'],
+      categoryId: result['categoryId'],
+      subtasks: List<String>.from(result['subtasks'] ?? []),
+      targetDate: result['targetDate'] as String?,
+    );
+    await widget.taskRepo.update(updated);
+    if (mounted) setState(() {});
   }
 
   Future<void> _showAddSheet() async {
@@ -259,9 +328,7 @@ class _HomeViewState extends State<HomeView> {
           ],
         ),
       ),
-      body: _totalCount == 0
-          ? _buildEmptyState(theme, isDark)
-          : _buildContent(theme, isDark),
+      body: _buildContent(theme, isDark),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddSheet,
         child: const Icon(Icons.add),
@@ -269,110 +336,328 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, bool isDark) {
-    return Center(
-      child: Column(
+  static const double _headerExpandedHeight = 180;
+  static const double _headerCollapsedHeight = 56;
+
+  Widget _buildContent(ThemeData theme, bool isDark) {
+    final routineCount = _activeRoutines.length;
+    final todayCount = _todayTasks.length;
+    final upcomingCount = _upcomingTasks.length;
+
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverOverlapAbsorber(
+            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+            sliver: SliverAppBar(
+              pinned: true,
+              floating: false,
+              automaticallyImplyLeading: false,
+              expandedHeight: _headerExpandedHeight,
+              collapsedHeight: _headerCollapsedHeight,
+              toolbarHeight: _headerCollapsedHeight,
+              backgroundColor: theme.colorScheme.surface,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              forceElevated: innerBoxIsScrolled,
+              flexibleSpace: Builder(
+                builder: (ctx) {
+                  final settings = ctx
+                      .dependOnInheritedWidgetOfExactType<
+                        FlexibleSpaceBarSettings
+                      >();
+                  final minExtent =
+                      settings?.minExtent ?? _headerCollapsedHeight;
+                  final maxExtent =
+                      settings?.maxExtent ?? _headerExpandedHeight;
+                  final currentExtent = settings?.currentExtent ?? maxExtent;
+                  final deltaExtent = maxExtent - minExtent;
+                  final t = deltaExtent <= 0
+                      ? 1.0
+                      : ((currentExtent - minExtent) / deltaExtent).clamp(
+                          0.0,
+                          1.0,
+                        );
+                  return _buildCollapsibleWelcome(t, theme, isDark);
+                },
+              ),
+              bottom: TabBar(
+                controller: _tabController,
+                labelStyle: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: GoogleFonts.inter(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+                tabs: [
+                  _buildTabLabel('루틴', routineCount),
+                  _buildTabLabel('오늘', todayCount),
+                  _buildTabLabel('예정', upcomingCount),
+                ],
+              ),
+            ),
+          ),
+        ];
+      },
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildRoutineTab(theme, isDark),
+          _buildTodayTab(theme, isDark),
+          _buildUpcomingTab(theme, isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabLabel(String label, int count) {
+    return Tab(
+      height: 44,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.eco, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.4)),
-          const SizedBox(height: 16),
-          Text('아직 할 일이 없어요', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text(
-            '+ 버튼으로 추가해보세요',
-            style: theme.textTheme.bodyMedium,
+          Text(label),
+          if (count > 0) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(9999),
+              ),
+              child: Text(
+                '$count',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoutineTab(ThemeData theme, bool isDark) {
+    if (_activeRoutines.isEmpty) {
+      return _buildTabEmpty(
+        theme,
+        pageKey: 'routine',
+        icon: Icons.loop,
+        title: '오늘 루틴 없음',
+        subtitle: '+ 버튼으로 루틴을 추가해보세요',
+      );
+    }
+    return _buildTabScrollView(
+      pageKey: 'routine',
+      children: [
+        ..._sortedRoutines.map((routine) {
+          final isDone = _dailyRecord.isRoutineCompleted(routine.id);
+          final category = _getCategoryFor(routine.categoryId);
+          final streak = _getStreak(routine);
+          return _buildRoutineTile(
+            routine: routine,
+            isDone: isDone,
+            category: category,
+            streak: streak,
+            isDark: isDark,
+            theme: theme,
+          );
+        }),
+        const SizedBox(height: 16),
+        _buildQuoteSection(theme, isDark),
+      ],
+    );
+  }
+
+  Widget _buildTodayTab(ThemeData theme, bool isDark) {
+    if (_todayTasks.isEmpty) {
+      return _buildTabEmpty(
+        theme,
+        pageKey: 'today',
+        icon: Icons.assignment_outlined,
+        title: '오늘 할 일 없음',
+        subtitle: '+ 버튼으로 할 일을 추가해보세요',
+      );
+    }
+    return _buildTabScrollView(
+      pageKey: 'today',
+      children: [
+        ..._todayTasks.map((task) {
+          final category = _getCategoryFor(task.categoryId);
+          final isOverdue =
+              !task.isCompleted && task.targetDate.compareTo(_today) < 0;
+          final overdueDays = isOverdue
+              ? DateTime.now()
+                    .difference(DateTime.parse(task.targetDate))
+                    .inDays
+              : 0;
+          return _buildTaskCard(
+            task: task,
+            category: category,
+            overdueDays: overdueDays,
+            isDark: isDark,
+            theme: theme,
+          );
+        }),
+        const SizedBox(height: 16),
+        _buildQuoteSection(theme, isDark),
+      ],
+    );
+  }
+
+  Widget _buildUpcomingTab(ThemeData theme, bool isDark) {
+    if (_upcomingTasks.isEmpty) {
+      return _buildTabEmpty(
+        theme,
+        pageKey: 'upcoming',
+        icon: Icons.event_outlined,
+        title: '예정된 할 일 없음',
+        subtitle: '미래 날짜로 할 일을 추가하면 여기에 표시돼요',
+      );
+    }
+    return _buildTabScrollView(
+      pageKey: 'upcoming',
+      children: [
+        ..._upcomingTasks.map((task) {
+          final category = _getCategoryFor(task.categoryId);
+          return _buildUpcomingTaskCard(
+            task: task,
+            category: category,
+            isDark: isDark,
+            theme: theme,
+          );
+        }),
+        const SizedBox(height: 16),
+        _buildQuoteSection(theme, isDark),
+      ],
+    );
+  }
+
+  Widget _buildTabScrollView({
+    required String pageKey,
+    required List<Widget> children,
+  }) {
+    return Builder(
+      builder: (ctx) {
+        return CustomScrollView(
+          key: PageStorageKey<String>(pageKey),
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          slivers: [
+            SliverOverlapInjector(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(ctx),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              sliver: SliverList(delegate: SliverChildListDelegate(children)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTabEmpty(
+    ThemeData theme, {
+    required String pageKey,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Builder(
+      builder: (ctx) {
+        return CustomScrollView(
+          key: PageStorageKey<String>('empty-$pageKey'),
+          slivers: [
+            SliverOverlapInjector(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(ctx),
+            ),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 56,
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.35,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(title, style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCollapsibleWelcome(double t, ThemeData theme, bool isDark) {
+    final expandedOpacity = t.clamp(0.0, 1.0);
+    final compactOpacity = (1 - t).clamp(0.0, 1.0);
+
+    return ClipRect(
+      child: Stack(
+        children: [
+          // Expanded layout (fades out on scroll)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              ignoring: expandedOpacity < 0.5,
+              child: Opacity(
+                opacity: expandedOpacity,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: _expandedWelcomeLayout(theme, isDark),
+                ),
+              ),
+            ),
+          ),
+          // Compact layout (fades in on scroll), anchored to bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              ignoring: compactOpacity < 0.5,
+              child: Opacity(
+                opacity: compactOpacity,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  child: _compactWelcomeLayout(theme, isDark),
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent(ThemeData theme, bool isDark) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      children: [
-        const SizedBox(height: 8),
-
-        // Welcome & Progress Ring Section
-        _buildWelcomeSection(theme, isDark),
-        const SizedBox(height: 32),
-
-        // Routines Section
-        if (_activeRoutines.isNotEmpty) ...[
-          _buildSectionHeader(
-            theme,
-            title: '오늘의 루틴',
-            badge: '반복',
-            badgeColor: AppTheme.tertiaryContainer,
-            badgeTextColor: AppTheme.tertiary,
-          ),
-          const SizedBox(height: 12),
-          ..._sortedRoutines.map((routine) {
-            final isDone = _dailyRecord.isRoutineCompleted(routine.id);
-            final category = _getCategoryFor(routine.categoryId);
-            final streak = _getStreak(routine);
-            return _buildRoutineTile(
-              routine: routine,
-              isDone: isDone,
-              category: category,
-              streak: streak,
-              isDark: isDark,
-              theme: theme,
-            );
-          }),
-          const SizedBox(height: 24),
-        ],
-
-        // Tasks Section
-        if (_todayTasks.isNotEmpty) ...[
-          _buildSectionHeader(
-            theme,
-            title: '추가 할 일',
-            trailing: GestureDetector(
-              onTap: _showAddSheet,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.add, size: 16, color: theme.colorScheme.primary),
-                  const SizedBox(width: 2),
-                  Text(
-                    '새 할 일',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ..._todayTasks.map((task) {
-            final category = _getCategoryFor(task.categoryId);
-            final isOverdue = !task.isCompleted && task.targetDate.compareTo(_today) < 0;
-            final overdueDays = isOverdue
-                ? DateTime.now().difference(DateTime.parse(task.targetDate)).inDays
-                : 0;
-            return _buildTaskCard(
-              task: task,
-              category: category,
-              overdueDays: overdueDays,
-              isDark: isDark,
-              theme: theme,
-            );
-          }),
-          const SizedBox(height: 24),
-        ],
-
-        // Quote Section
-        _buildQuoteSection(theme, isDark),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _buildWelcomeSection(ThemeData theme, bool isDark) {
+  Widget _expandedWelcomeLayout(ThemeData theme, bool isDark) {
     final remaining = _totalCount - _completedCount;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -434,47 +719,63 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildSectionHeader(
-    ThemeData theme, {
-    required String title,
-    String? badge,
-    Color? badgeColor,
-    Color? badgeTextColor,
-    Widget? trailing,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
+  Widget _compactWelcomeLayout(ThemeData theme, bool isDark) {
+    final percent = _totalCount == 0
+        ? 0
+        : (_completedCount / _totalCount * 100).round();
+    return SizedBox(
+      height: 40,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.manrope(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: "Today's ",
+                    style: GoogleFonts.manrope(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w300,
+                      color: theme.colorScheme.onSurface,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Progress',
+                    style: GoogleFonts.manrope(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (badge != null) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-              decoration: BoxDecoration(
-                color: badgeColor ?? AppTheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(9999),
+          if (_totalCount > 0) ...[
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: DailyProgressRing(
+                completed: _completedCount,
+                total: _totalCount,
+                size: 36,
+                compact: true,
               ),
-              child: Text(
-                badge.toUpperCase(),
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: badgeTextColor ?? theme.colorScheme.onSurfaceVariant,
-                  letterSpacing: 1,
-                ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              '$_completedCount/$_totalCount · $percent%',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ],
-          const Spacer(),
-          if (trailing != null) trailing,
         ],
       ),
     );
@@ -492,131 +793,153 @@ class _HomeViewState extends State<HomeView> {
         ? theme.colorScheme.primaryContainer.withValues(alpha: 0.2)
         : (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
 
-    return Dismissible(
-      key: Key(routine.id),
-      direction: DismissDirection.endToStart,
-      onDismissed: (_) {
-        setState(() {
-          widget.routineRepo.delete(routine.id);
-          final updated = Map<String, bool>.from(_dailyRecord.routineCompletions);
-          updated.remove(routine.id);
-          _dailyRecord = _dailyRecord.copyWith(routineCompletions: updated);
-        });
-      },
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: AppTheme.error,
-          borderRadius: BorderRadius.circular(16),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Slidable(
+        key: Key(routine.id),
+        groupTag: 'home-list',
+        endActionPane: ActionPane(
+          motion: const BehindMotion(),
+          extentRatio: 0.25,
+          children: [
+            SlidableAction(
+              onPressed: (_) async {
+                final ok = await _showDeleteConfirm(routine.title);
+                if (!ok || !mounted) return;
+                setState(() {
+                  widget.routineRepo.delete(routine.id);
+                  final updated = Map<String, bool>.from(
+                    _dailyRecord.routineCompletions,
+                  );
+                  updated.remove(routine.id);
+                  _dailyRecord = _dailyRecord.copyWith(
+                    routineCompletions: updated,
+                  );
+                });
+              },
+              backgroundColor: AppTheme.error,
+              foregroundColor: Colors.white,
+              icon: Icons.delete_outline,
+              label: '삭제',
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ],
         ),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
-      ),
-      child: GestureDetector(
-        onTap: () => _editRoutine(routine),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              // Checkbox
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _toggleRoutine(routine.id),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: isDone ? theme.colorScheme.primary : Colors.transparent,
-                      borderRadius: BorderRadius.circular(6),
-                      border: isDone
-                          ? null
-                          : Border.all(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                              width: 2,
-                            ),
-                    ),
-                    child: isDone
-                        ? Icon(Icons.check, size: 16, color: theme.colorScheme.onPrimary)
-                        : null,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      routine.title,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+        child: GestureDetector(
+          onTap: () => _editRoutine(routine),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                // Checkbox
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _toggleRoutine(routine.id),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
                         color: isDone
-                            ? theme.colorScheme.onSurfaceVariant
-                            : theme.colorScheme.onSurface,
-                        decoration: isDone ? TextDecoration.lineThrough : null,
+                            ? theme.colorScheme.primary
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: isDone
+                            ? null
+                            : Border.all(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.3,
+                                ),
+                                width: 2,
+                              ),
                       ),
+                      child: isDone
+                          ? Icon(
+                              Icons.check,
+                              size: 16,
+                              color: theme.colorScheme.onPrimary,
+                            )
+                          : null,
                     ),
-                    if (routine.subtasks.isNotEmpty || streak >= 2)
-                      const SizedBox(height: 2),
-                    if (routine.subtasks.isNotEmpty || streak >= 2)
-                      Row(
-                        children: [
-                          if (routine.subtasks.isNotEmpty)
-                            Text(
-                              '${routine.subtasks.length}개 하위작업',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          if (routine.subtasks.isNotEmpty && streak >= 2)
-                            Text(
-                              ' • ',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          if (streak >= 2) ...[
-                            const Icon(
-                              Icons.local_fire_department,
-                              color: AppTheme.warning,
-                              size: 13,
-                            ),
-                            Text(
-                              ' $streak일 연속',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: AppTheme.warning,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              // Category dot
-              if (category != null)
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: parseHexColor(category.color),
-                    shape: BoxShape.circle,
                   ),
                 ),
-            ],
+                const SizedBox(width: 12),
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        routine.title,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDone
+                              ? theme.colorScheme.onSurfaceVariant
+                              : theme.colorScheme.onSurface,
+                          decoration: isDone
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                      if (routine.subtasks.isNotEmpty || streak >= 2)
+                        const SizedBox(height: 2),
+                      if (routine.subtasks.isNotEmpty || streak >= 2)
+                        Row(
+                          children: [
+                            if (routine.subtasks.isNotEmpty)
+                              Text(
+                                '${routine.subtasks.length}개 하위작업',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            if (routine.subtasks.isNotEmpty && streak >= 2)
+                              Text(
+                                ' • ',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            if (streak >= 2) ...[
+                              const Icon(
+                                Icons.local_fire_department,
+                                color: AppTheme.warning,
+                                size: 13,
+                              ),
+                              Text(
+                                ' $streak일 연속',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppTheme.warning,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+                // Category dot
+                if (category != null)
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: parseHexColor(category.color),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -630,7 +953,8 @@ class _HomeViewState extends State<HomeView> {
     required bool isDark,
     required ThemeData theme,
   }) {
-    final cardColor = (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
+    final cardColor =
+        (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
     final iconBg = category != null
         ? parseHexColor(category.color).withValues(alpha: 0.1)
         : theme.colorScheme.secondaryContainer;
@@ -638,120 +962,380 @@ class _HomeViewState extends State<HomeView> {
         ? parseHexColor(category.color)
         : theme.colorScheme.secondary;
 
-    return Dismissible(
-      key: Key(task.id),
-      direction: DismissDirection.endToStart,
-      onDismissed: (_) {
-        setState(() {
-          widget.taskRepo.delete(task.id);
-        });
-      },
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: AppTheme.error,
-          borderRadius: BorderRadius.circular(16),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Slidable(
+        key: Key(task.id),
+        groupTag: 'home-list',
+        endActionPane: ActionPane(
+          motion: const BehindMotion(),
+          extentRatio: 0.25,
+          children: [
+            SlidableAction(
+              onPressed: (_) async {
+                final ok = await _showDeleteConfirm(task.title);
+                if (!ok || !mounted) return;
+                setState(() {
+                  widget.taskRepo.delete(task.id);
+                });
+              },
+              backgroundColor: AppTheme.error,
+              foregroundColor: Colors.white,
+              icon: Icons.delete_outline,
+              label: '삭제',
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ],
         ),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
-      ),
-      child: GestureDetector(
-        onTap: () => _editTask(task),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              // Icon circle
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  task.isCompleted ? Icons.check : Icons.assignment_outlined,
-                  color: iconColor,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: GestureDetector(
+          onTap: () => _editTask(task),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      task.title,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: task.isCompleted
-                            ? theme.colorScheme.onSurfaceVariant
-                            : theme.colorScheme.onSurface,
-                        decoration:
-                            task.isCompleted ? TextDecoration.lineThrough : null,
+                    // Icon circle
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: iconBg,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        task.isCompleted
+                            ? Icons.check
+                            : Icons.assignment_outlined,
+                        color: iconColor,
+                        size: 20,
                       ),
                     ),
-                    if (overdueDays > 0 || task.subtasks.isNotEmpty)
-                      Row(
+                    const SizedBox(width: 12),
+                    // Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (overdueDays > 0)
-                            Text(
-                              'D+$overdueDays',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: AppTheme.error,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          Text(
+                            task.title,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: task.isCompleted
+                                  ? theme.colorScheme.onSurfaceVariant
+                                  : theme.colorScheme.onSurface,
+                              decoration: task.isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
                             ),
-                          if (overdueDays > 0 && task.subtasks.isNotEmpty)
-                            Text(' • ',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: theme.colorScheme.onSurfaceVariant)),
-                          if (task.subtasks.isNotEmpty)
+                          ),
+                          if (overdueDays > 0 || task.subtasks.isNotEmpty)
+                            Row(
+                              children: [
+                                if (overdueDays > 0)
+                                  Text(
+                                    'D+$overdueDays',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: AppTheme.error,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                if (overdueDays > 0 && task.subtasks.isNotEmpty)
+                                  Text(
+                                    ' • ',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                if (task.subtasks.isNotEmpty)
+                                  Text(
+                                    '${_completedSubtaskCount(task)}/${task.subtasks.length} 세부 항목',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Completion circle
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _toggleTask(task.id),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: task.isCompleted
+                                ? theme.colorScheme.primary
+                                : Colors.transparent,
+                            shape: BoxShape.circle,
+                            border: task.isCompleted
+                                ? null
+                                : Border.all(
+                                    color: theme.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.5),
+                                    width: 2,
+                                  ),
+                          ),
+                          child: task.isCompleted
+                              ? Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: theme.colorScheme.onPrimary,
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (task.subtasks.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 52),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: task.subtasks.asMap().entries.map((entry) {
+                        final i = entry.key;
+                        final title = entry.value;
+                        final done = task.isSubtaskCompleted(i);
+                        return InkWell(
+                          onTap: () => _toggleSubtask(task.id, i),
+                          borderRadius: BorderRadius.circular(6),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  done
+                                      ? Icons.check_box
+                                      : Icons.check_box_outline_blank,
+                                  size: 18,
+                                  color: done
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.outlineVariant,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    title,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: done
+                                          ? theme.colorScheme.onSurfaceVariant
+                                          : theme.colorScheme.onSurface,
+                                      decoration: done
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  int _completedSubtaskCount(AdditionalTask task) {
+    var count = 0;
+    for (int i = 0; i < task.subtasks.length; i++) {
+      if (task.isSubtaskCompleted(i)) count++;
+    }
+    return count;
+  }
+
+  Widget _buildUpcomingTaskCard({
+    required AdditionalTask task,
+    required Category? category,
+    required bool isDark,
+    required ThemeData theme,
+  }) {
+    final cardColor =
+        (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
+    final iconBg = category != null
+        ? parseHexColor(category.color).withValues(alpha: 0.1)
+        : theme.colorScheme.secondaryContainer;
+    final iconColor = category != null
+        ? parseHexColor(category.color)
+        : theme.colorScheme.secondary;
+
+    final dt = DateTime.parse(task.targetDate);
+    final weekday = ['월', '화', '수', '목', '금', '토', '일'][dt.weekday - 1];
+    final dateLabel = '${dt.month}/${dt.day} ($weekday)';
+    final daysLeft = dt.difference(DateTime.parse(_today)).inDays;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Slidable(
+        key: Key('upcoming-${task.id}'),
+        groupTag: 'home-list',
+        endActionPane: ActionPane(
+          motion: const BehindMotion(),
+          extentRatio: 0.25,
+          children: [
+            SlidableAction(
+              onPressed: (_) async {
+                final ok = await _showDeleteConfirm(task.title);
+                if (!ok || !mounted) return;
+                setState(() {
+                  widget.taskRepo.delete(task.id);
+                });
+              },
+              backgroundColor: AppTheme.error,
+              foregroundColor: Colors.white,
+              icon: Icons.delete_outline,
+              label: '삭제',
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ],
+        ),
+        child: GestureDetector(
+          onTap: () => _editTask(task),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: iconBg,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.event_outlined,
+                        color: iconColor,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            task.title,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          if (task.subtasks.isNotEmpty) ...[
+                            const SizedBox(height: 2),
                             Text(
-                              '${task.subtasks.length}개 하위작업',
+                              '${task.subtasks.length}개 세부 항목',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
+                          ],
                         ],
                       ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer
+                                .withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(9999),
+                          ),
+                          child: Text(
+                            dateLabel,
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        if (daysLeft > 0) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'D-$daysLeft',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
-              ),
-              // Completion circle
-              GestureDetector(
-                onTap: () => _toggleTask(task.id),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: task.isCompleted
-                        ? theme.colorScheme.primary
-                        : Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: task.isCompleted
-                        ? null
-                        : Border.all(
-                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-                            width: 2,
+                if (task.subtasks.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 52),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: task.subtasks.map((title) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.check_box_outline_blank,
+                                size: 18,
+                                color: theme.colorScheme.outlineVariant,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                        );
+                      }).toList(),
+                    ),
                   ),
-                  child: task.isCompleted
-                      ? Icon(Icons.check, size: 16, color: theme.colorScheme.onPrimary)
-                      : null,
-                ),
-              ),
-            ],
+                ],
+              ],
+            ),
           ),
         ),
       ),

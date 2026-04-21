@@ -36,32 +36,35 @@ void main() {
       );
     }
 
-    testWidgets('루틴 섹션이 표시된다', (tester) async {
+    testWidgets('루틴 탭이 표시된다', (tester) async {
       await tester.pumpWidget(buildTestWidget());
 
-      expect(find.text('오늘의 루틴'), findsOneWidget);
+      // 3탭 라벨 확인
+      expect(find.text('루틴'), findsWidgets);
+      expect(find.text('오늘'), findsWidgets);
+      expect(find.text('예정'), findsWidgets);
     });
 
-    testWidgets('Mock 루틴들이 표시된다', (tester) async {
+    testWidgets('Mock 루틴들이 표시된다 (루틴 탭 기본 노출)', (tester) async {
       await tester.pumpWidget(buildTestWidget());
 
       expect(find.text('아침 운동'), findsOneWidget);
       expect(find.text('영어 공부'), findsOneWidget);
     });
 
-    testWidgets('추가 할 일 섹션이 표시된다 (스크롤 후)', (tester) async {
+    testWidgets('오늘 탭으로 이동하면 할일이 표시된다', (tester) async {
       await tester.pumpWidget(buildTestWidget());
 
-      // 루틴이 8개라 스크롤 필요
-      await tester.scrollUntilVisible(find.text('추가 할 일'), 200);
-      expect(find.text('추가 할 일'), findsOneWidget);
+      await tester.tap(find.text('오늘').first);
+      await tester.pumpAndSettle();
+      expect(find.text('오늘 할 일'), findsOneWidget);
     });
 
     testWidgets('진행률 링이 표시된다', (tester) async {
       await tester.pumpWidget(buildTestWidget());
 
-      // 진행률 링: 퍼센트 표시
-      expect(find.textContaining('%'), findsOneWidget);
+      // 진행률 링: 퍼센트 표시 (헤더는 expanded/compact 두 레이어가 공존)
+      expect(find.textContaining('%'), findsWidgets);
     });
 
     testWidgets('FAB이 표시된다', (tester) async {
@@ -80,10 +83,8 @@ void main() {
       expect(find.text('할 일 추가'), findsOneWidget);
     });
 
-    testWidgets('빈 상태에서는 EmptyState가 표시된다', (tester) async {
-      // 빈 레포로 생성
+    testWidgets('빈 상태에서는 각 탭 별 EmptyState가 표시된다', (tester) async {
       final emptyRoutineRepo = RoutineRepository(useMock: true);
-      // mock 데이터를 비우기 위해 모두 삭제
       for (final r in emptyRoutineRepo.getAll().toList()) {
         emptyRoutineRepo.delete(r.id);
       }
@@ -102,7 +103,8 @@ void main() {
         ),
       );
 
-      expect(find.text('아직 할 일이 없어요'), findsOneWidget);
+      // 기본 탭(루틴) 빈 상태
+      expect(find.text('오늘 루틴 없음'), findsOneWidget);
     });
   });
 }

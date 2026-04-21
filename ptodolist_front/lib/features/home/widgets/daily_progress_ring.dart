@@ -7,12 +7,14 @@ class DailyProgressRing extends StatelessWidget {
   final int completed;
   final int total;
   final double size;
+  final bool compact;
 
   const DailyProgressRing({
     super.key,
     required this.completed,
     required this.total,
     this.size = 140,
+    this.compact = false,
   });
 
   double get _progress => total == 0 ? 0.0 : completed / total;
@@ -26,11 +28,12 @@ class DailyProgressRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (total == 0) return const SizedBox.shrink();
+    if (total == 0) return SizedBox(width: size, height: size);
 
     final theme = Theme.of(context);
     final color = _progressColor(theme.colorScheme);
     final trackColor = theme.colorScheme.surfaceContainerHigh;
+    final strokeWidth = compact ? 4.0 : 8.0;
 
     return SizedBox(
       width: size,
@@ -40,33 +43,36 @@ class DailyProgressRing extends StatelessWidget {
           progress: _progress,
           color: color,
           trackColor: trackColor,
+          strokeWidth: strokeWidth,
         ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$_percent%',
-                style: GoogleFonts.manrope(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  height: 1,
+        child: compact
+            ? const SizedBox.shrink()
+            : Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '$_percent%',
+                      style: GoogleFonts.manrope(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'DONE',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                'DONE',
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -76,18 +82,19 @@ class _RingPainter extends CustomPainter {
   final double progress;
   final Color color;
   final Color trackColor;
+  final double strokeWidth;
 
   _RingPainter({
     required this.progress,
     required this.color,
     required this.trackColor,
+    this.strokeWidth = 8.0,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - 12) / 2;
-    const strokeWidth = 8.0;
+    final radius = (size.width - strokeWidth - 4) / 2;
 
     // Track
     final trackPaint = Paint()
@@ -116,5 +123,7 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RingPainter oldDelegate) =>
-      oldDelegate.progress != progress || oldDelegate.color != color;
+      oldDelegate.progress != progress ||
+      oldDelegate.color != color ||
+      oldDelegate.strokeWidth != strokeWidth;
 }
