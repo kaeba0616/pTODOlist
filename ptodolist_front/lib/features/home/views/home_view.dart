@@ -313,8 +313,8 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  static const double _headerExpandedHeight = 180;
-  static const double _headerCollapsedHeight = 56;
+  static const double _headerExpandedHeight = 156;
+  static const double _headerCollapsedHeight = 44;
 
   Widget _buildContent(ThemeData theme, bool isDark) {
     final routineCount = _activeRoutines.length;
@@ -607,7 +607,7 @@ class _HomeViewState extends State<HomeView>
               child: Opacity(
                 opacity: expandedOpacity,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: _expandedWelcomeLayout(theme, isDark),
                 ),
               ),
@@ -623,7 +623,7 @@ class _HomeViewState extends State<HomeView>
               child: Opacity(
                 opacity: compactOpacity,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
                   child: _compactWelcomeLayout(theme, isDark),
                 ),
               ),
@@ -637,7 +637,7 @@ class _HomeViewState extends State<HomeView>
   Widget _expandedWelcomeLayout(ThemeData theme, bool isDark) {
     final remaining = _totalCount - _completedCount;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Column(
