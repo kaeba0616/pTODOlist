@@ -313,7 +313,7 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  static const double _headerExpandedHeight = 156;
+  static const double _headerExpandedHeight = 164;
   static const double _headerCollapsedHeight = 44;
 
   Widget _buildContent(ThemeData theme, bool isDark) {
@@ -359,21 +359,27 @@ class _HomeViewState extends State<HomeView>
                   return _buildCollapsibleWelcome(t, theme, isDark);
                 },
               ),
-              bottom: TabBar(
-                controller: _tabController,
-                labelStyle: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Material(
+                  color: theme.colorScheme.surface,
+                  child: TabBar(
+                    controller: _tabController,
+                    labelStyle: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                    unselectedLabelStyle: GoogleFonts.inter(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                    tabs: [
+                      _buildTabLabel('루틴', routineCount),
+                      _buildTabLabel('오늘', todayCount),
+                      _buildTabLabel('예정', upcomingCount),
+                    ],
+                  ),
                 ),
-                unselectedLabelStyle: GoogleFonts.inter(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
-                ),
-                tabs: [
-                  _buildTabLabel('루틴', routineCount),
-                  _buildTabLabel('오늘', todayCount),
-                  _buildTabLabel('예정', upcomingCount),
-                ],
               ),
             ),
           ),
@@ -613,11 +619,11 @@ class _HomeViewState extends State<HomeView>
               ),
             ),
           ),
-          // Compact layout (fades in on scroll), anchored to bottom
+          // Compact layout (fades in on scroll), anchored to top (toolbar area, above TabBar)
           Positioned(
+            top: 0,
             left: 0,
             right: 0,
-            bottom: 0,
             child: IgnorePointer(
               ignoring: compactOpacity < 0.5,
               child: Opacity(
@@ -637,7 +643,7 @@ class _HomeViewState extends State<HomeView>
   Widget _expandedWelcomeLayout(ThemeData theme, bool isDark) {
     final remaining = _totalCount - _completedCount;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
@@ -691,7 +697,11 @@ class _HomeViewState extends State<HomeView>
             ],
           ),
         ),
-        DailyProgressRing(completed: _completedCount, total: _totalCount),
+        DailyProgressRing(
+          completed: _completedCount,
+          total: _totalCount,
+          size: 100,
+        ),
       ],
     );
   }
