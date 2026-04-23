@@ -27,8 +27,9 @@ class CompletionChart extends StatelessWidget {
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final rate = (stats[groupIndex].rate * 100).round();
               return BarTooltipItem(
-                '${rod.toY.round()}%',
+                '$rate%',
                 GoogleFonts.inter(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
