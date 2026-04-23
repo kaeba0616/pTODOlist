@@ -80,10 +80,11 @@ class StatsCalculator {
         start,
         end > daily.length ? daily.length : end,
       );
-      final nonZero = weekSlice.where((d) => d.rate > 0).toList();
-      final avg = nonZero.isEmpty
+      // 기록 없는 날은 0% 로 간주해 해당 기간(보통 7일) 길이로 나눈다.
+      // 예전엔 비어있는 날을 제외해서 하루만 체크해도 주간이 100% 로 보였음.
+      final avg = weekSlice.isEmpty
           ? 0.0
-          : nonZero.fold(0.0, (sum, d) => sum + d.rate) / nonZero.length;
+          : weekSlice.fold(0.0, (sum, d) => sum + d.rate) / weekSlice.length;
 
       final label = w == 0
           ? '${weeks - w}주 전'
@@ -116,7 +117,7 @@ class StatsCalculator {
       final monthLabel = '${month.month}월';
 
       double totalRate = 0;
-      int validDays = 0;
+      int countedDays = 0;
 
       for (int d = 1; d <= daysInMonth; d++) {
         final date = DateTime(month.year, month.month, d);
@@ -126,16 +127,15 @@ class StatsCalculator {
         final record = recordMap[dateStr];
         final dayTasks = tasksByDate[dateStr] ?? [];
         final total = (record?.totalCount ?? 0) + dayTasks.length;
-        if (total == 0) continue;
-
-        final done =
-            (record?.completedCount ?? 0) +
+        final done = (record?.completedCount ?? 0) +
             dayTasks.where((t) => t.isCompleted).length;
-        totalRate += done / total;
-        validDays++;
+        // 기록 없거나 total=0 인 날도 "0% 달성"으로 집계해 분모 유지.
+        // 월의 시작부터 오늘(또는 말일)까지 경과한 날 수로 평균.
+        totalRate += total == 0 ? 0.0 : done / total;
+        countedDays++;
       }
 
-      final avg = validDays == 0 ? 0.0 : totalRate / validDays;
+      final avg = countedDays == 0 ? 0.0 : totalRate / countedDays;
       stats.add(DayStat(date: '', label: monthLabel, rate: avg));
     }
     return stats;

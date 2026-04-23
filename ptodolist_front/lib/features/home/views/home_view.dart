@@ -16,6 +16,7 @@ import 'package:ptodolist/features/home/models/daily_record.dart';
 import 'package:ptodolist/features/home/repos/daily_record_repo.dart';
 import 'package:ptodolist/features/home/widgets/daily_progress_ring.dart';
 import 'package:ptodolist/features/home/widgets/add_bottom_sheet.dart';
+import 'package:ptodolist/features/home/data/daily_quotes.dart';
 import 'package:ptodolist/features/home_widget/services/home_widget_service.dart';
 
 class HomeView extends StatefulWidget {
@@ -1265,7 +1266,7 @@ class _HomeViewState extends State<HomeView>
           ),
           const SizedBox(height: 12),
           Text(
-            '"작은 습관이 큰 변화를 만듭니다.\n오늘도 한 걸음 더 나아가세요."',
+            DailyQuotes.forDate(DateTime.parse(_today)),
             textAlign: TextAlign.center,
             style: GoogleFonts.manrope(
               fontSize: 16,

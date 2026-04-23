@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ptodolist/core/db/backup_service.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
+import 'package:ptodolist/core/utils/storage_info.dart';
 import 'package:ptodolist/features/settings/repos/settings_repo.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -24,6 +25,7 @@ class _SettingsViewState extends State<SettingsView> {
   late String _notificationTime;
   late int _retentionMonths;
   late String _themeMode;
+  int? _storageBytes;
 
   @override
   void initState() {
@@ -33,6 +35,13 @@ class _SettingsViewState extends State<SettingsView> {
     _notificationTime = settings.notificationTime;
     _retentionMonths = settings.retentionMonths;
     _themeMode = settings.themeMode;
+    _loadStorageSize();
+  }
+
+  Future<void> _loadStorageSize() async {
+    final bytes = await StorageInfo.getHiveBoxesSizeBytes();
+    if (!mounted) return;
+    setState(() => _storageBytes = bytes);
   }
 
   TimeOfDay _parseTime(String time) {
@@ -440,31 +449,37 @@ class _SettingsViewState extends State<SettingsView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('12.4',
-                        style: GoogleFonts.manrope(
-                            fontSize: 24, fontWeight: FontWeight.w300)),
-                    const SizedBox(width: 2),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 3),
-                      child: Text('MB',
-                          style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.onSurfaceVariant)),
-                    ),
-                  ],
+                Builder(
+                  builder: (_) {
+                    final (num, unit) = _storageBytes == null
+                        ? ('--', 'KB')
+                        : StorageInfo.formatSplit(_storageBytes!);
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(num,
+                            style: GoogleFonts.manrope(
+                                fontSize: 24, fontWeight: FontWeight.w300)),
+                        const SizedBox(width: 2),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 3),
+                          child: Text(unit,
+                              style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.onSurfaceVariant)),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(9999),
-                  child: LinearProgressIndicator(
-                    value: 0.25,
-                    minHeight: 4,
-                    backgroundColor: AppTheme.surfaceContainerHighest,
-                    color: theme.colorScheme.primary,
+                Text(
+                  '로컬 DB 사용량',
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
