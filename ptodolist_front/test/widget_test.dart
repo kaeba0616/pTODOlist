@@ -1,5 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ptodolist/features/auth/providers/auth_providers.dart';
 import 'package:ptodolist/features/home/views/home_view.dart';
 import 'package:ptodolist/features/stats/views/stats_view.dart';
 import 'package:ptodolist/features/settings/views/settings_view.dart';
@@ -19,9 +22,15 @@ void main() {
       int selectedIndex = 0;
 
       await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.lightTheme(),
-          home: StatefulBuilder(
+        ProviderScope(
+          overrides: [
+            authStateProvider.overrideWith(
+              (ref) => Stream<User?>.value(null),
+            ),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme(),
+            home: StatefulBuilder(
             builder: (context, setState) {
               final screens = [
                 HomeView(
@@ -55,6 +64,7 @@ void main() {
                 ),
               );
             },
+          ),
           ),
         ),
       );

@@ -2,25 +2,28 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ptodolist/core/db/backup_service.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/storage_info.dart';
+import 'package:ptodolist/features/auth/providers/auth_providers.dart';
+import 'package:ptodolist/features/auth/views/login_view.dart';
 import 'package:ptodolist/features/settings/repos/settings_repo.dart';
 import 'package:share_plus/share_plus.dart';
 
-class SettingsView extends StatefulWidget {
+class SettingsView extends ConsumerStatefulWidget {
   final SettingsRepository? settingsRepo;
   final ValueChanged<ThemeMode>? onThemeChanged;
 
   const SettingsView({super.key, this.settingsRepo, this.onThemeChanged});
 
   @override
-  State<SettingsView> createState() => _SettingsViewState();
+  ConsumerState<SettingsView> createState() => _SettingsViewState();
 }
 
-class _SettingsViewState extends State<SettingsView> {
+class _SettingsViewState extends ConsumerState<SettingsView> {
   late bool _notificationEnabled;
   late String _notificationTime;
   late int _retentionMonths;
@@ -114,6 +117,10 @@ class _SettingsViewState extends State<SettingsView> {
           // Title
           _buildTitle(theme),
           const SizedBox(height: 20),
+
+          // Account section
+          _buildAccountSection(theme, isDark),
+          const SizedBox(height: 24),
 
           // Privacy card
           _buildPrivacyCard(theme, isDark),
@@ -281,6 +288,96 @@ class _SettingsViewState extends State<SettingsView> {
         ],
       ),
     );
+  }
+
+  Widget _buildAccountSection(ThemeData theme, bool isDark) {
+    final user = ref.watch(authStateProvider).valueOrNull;
+    final cardColor = isDark
+        ? theme.colorScheme.surfaceContainerHigh
+        : theme.colorScheme.surface;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: isDark
+            ? null
+            : Border.all(
+                color: AppTheme.outlineVariant.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            user == null ? Icons.person_outline : Icons.account_circle,
+            size: 32,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user == null ? '로그인 안 됨' : (user.displayName ?? '사용자'),
+                  style: GoogleFonts.manrope(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  user == null
+                      ? '다른 사람의 루틴을 보려면 로그인 필요'
+                      : (user.email ?? '익명'),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (user == null)
+            FilledButton.tonal(
+              onPressed: _openLogin,
+              child: const Text('로그인'),
+            )
+          else
+            TextButton(
+              onPressed: _signOut,
+              child: const Text('로그아웃'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openLogin() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const LoginView()),
+    );
+  }
+
+  Future<void> _signOut() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('로그아웃'),
+        content: const Text('로그아웃해도 로컬 데이터는 그대로 유지돼요.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('로그아웃')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(authServiceProvider).signOut();
   }
 
   Widget _buildPrivacyCard(ThemeData theme, bool isDark) {
