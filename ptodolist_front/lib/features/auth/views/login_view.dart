@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ptodolist/features/auth/providers/auth_providers.dart';
+import 'package:ptodolist/features/profile/providers/profile_providers.dart';
+import 'package:ptodolist/features/profile/views/profile_edit_view.dart';
 
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
@@ -20,7 +22,19 @@ class _LoginViewState extends ConsumerState<LoginView> {
       _error = null;
     });
     try {
-      await ref.read(authServiceProvider).signInWithGoogle();
+      final cred = await ref.read(authServiceProvider).signInWithGoogle();
+      final uid = cred.user?.uid;
+      if (uid != null) {
+        final existing = await ref.read(userProfileRepoProvider).get(uid);
+        if (!mounted) return;
+        if (existing == null) {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const ProfileEditView(isFirstTime: true),
+            ),
+          );
+        }
+      }
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {

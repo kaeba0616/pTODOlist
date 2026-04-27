@@ -10,6 +10,9 @@ import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/storage_info.dart';
 import 'package:ptodolist/features/auth/providers/auth_providers.dart';
 import 'package:ptodolist/features/auth/views/login_view.dart';
+import 'package:ptodolist/features/profile/models/user_profile.dart';
+import 'package:ptodolist/features/profile/providers/profile_providers.dart';
+import 'package:ptodolist/features/profile/views/profile_edit_view.dart';
 import 'package:ptodolist/features/settings/repos/settings_repo.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -292,9 +295,23 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
   Widget _buildAccountSection(ThemeData theme, bool isDark) {
     final user = ref.watch(authStateProvider).valueOrNull;
+    final profile = ref.watch(myProfileProvider).valueOrNull;
     final cardColor = isDark
         ? theme.colorScheme.surfaceContainerHigh
         : theme.colorScheme.surface;
+
+    final title = user == null
+        ? '로그인 안 됨'
+        : (profile?.nickname.isNotEmpty == true
+            ? profile!.nickname
+            : (user.displayName ?? '사용자'));
+
+    final subtitle = user == null
+        ? '다른 사람의 루틴을 보려면 로그인 필요'
+        : (profile == null
+            ? '프로필을 설정해주세요'
+            : '${profile.publicMode.label} · ${user.email ?? '익명'}');
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -318,7 +335,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user == null ? '로그인 안 됨' : (user.displayName ?? '사용자'),
+                  title,
                   style: GoogleFonts.manrope(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -326,9 +343,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  user == null
-                      ? '다른 사람의 루틴을 보려면 로그인 필요'
-                      : (user.email ?? '익명'),
+                  subtitle,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -345,12 +360,25 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               child: const Text('로그인'),
             )
           else
-            TextButton(
-              onPressed: _signOut,
-              child: const Text('로그아웃'),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (v) {
+                if (v == 'edit') _openProfileEdit();
+                if (v == 'logout') _signOut();
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'edit', child: Text('프로필 편집')),
+                PopupMenuItem(value: 'logout', child: Text('로그아웃')),
+              ],
             ),
         ],
       ),
+    );
+  }
+
+  Future<void> _openProfileEdit() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ProfileEditView()),
     );
   }
 
