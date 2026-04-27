@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ptodolist/features/home/views/home_view.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
@@ -27,11 +28,13 @@ void main() {
     });
 
     Widget buildTestWidget() {
-      return MaterialApp(
-        home: HomeView(
-          categoryRepo: catRepo,
-          routineRepo: routineRepo,
-          taskRepo: taskRepo,
+      return ProviderScope(
+        child: MaterialApp(
+          home: HomeView(
+            categoryRepo: catRepo,
+            routineRepo: routineRepo,
+            taskRepo: taskRepo,
+          ),
         ),
       );
     }
@@ -94,11 +97,13 @@ void main() {
       }
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: HomeView(
-            categoryRepo: catRepo,
-            routineRepo: emptyRoutineRepo,
-            taskRepo: emptyTaskRepo,
+        ProviderScope(
+          child: MaterialApp(
+            home: HomeView(
+              categoryRepo: catRepo,
+              routineRepo: emptyRoutineRepo,
+              taskRepo: emptyTaskRepo,
+            ),
           ),
         ),
       );

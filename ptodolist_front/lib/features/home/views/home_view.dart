@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:ptodolist/features/social/providers/social_providers.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/core/utils/streak_calculator.dart';
@@ -19,7 +21,7 @@ import 'package:ptodolist/features/home/widgets/add_bottom_sheet.dart';
 import 'package:ptodolist/features/home/data/daily_quotes.dart';
 import 'package:ptodolist/features/home_widget/services/home_widget_service.dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends ConsumerStatefulWidget {
   final CategoryRepository categoryRepo;
   final RoutineRepository routineRepo;
   final TaskRepository taskRepo;
@@ -36,10 +38,10 @@ class HomeView extends StatefulWidget {
   });
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  ConsumerState<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView>
+class _HomeViewState extends ConsumerState<HomeView>
     with SingleTickerProviderStateMixin {
   late DailyRecord _dailyRecord;
   late final TabController _tabController;
@@ -53,6 +55,13 @@ class _HomeViewState extends State<HomeView>
       if (mounted) setState(() {});
     });
     _initDailyRecord();
+    // 앱 시작 시 한 번 sync (로그인 + 프로필 있으면).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(dailyShareSyncServiceProvider).syncToday(
+            record: _dailyRecord,
+            activeRoutines: _activeRoutines,
+          );
+    });
   }
 
   @override
@@ -139,9 +148,19 @@ class _HomeViewState extends State<HomeView>
   void _toggleRoutine(String routineId) {
     setState(() {
       _dailyRecord = _dailyRecord.toggleRoutine(routineId);
-      widget.dailyRecordRepo?.save(_dailyRecord);
+      _saveDailyRecordAndSync();
     });
     widget.homeWidgetService?.updateWidgetData();
+  }
+
+  void _saveDailyRecordAndSync() {
+    widget.dailyRecordRepo?.save(_dailyRecord);
+    final activeRoutines =
+        widget.routineRepo.getAll().where((r) => r.isActive).toList();
+    ref.read(dailyShareSyncServiceProvider).syncToday(
+          record: _dailyRecord,
+          activeRoutines: activeRoutines,
+        );
   }
 
   void _toggleTask(String taskId) {
@@ -176,7 +195,7 @@ class _HomeViewState extends State<HomeView>
         );
         completions.remove(freshRoutine.id);
         _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
-        widget.dailyRecordRepo?.save(_dailyRecord);
+        _saveDailyRecordAndSync();
       });
       widget.homeWidgetService?.updateWidgetData();
       return;
@@ -202,7 +221,7 @@ class _HomeViewState extends State<HomeView>
           );
           completions.remove(updated.id);
           _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
-          widget.dailyRecordRepo?.save(_dailyRecord);
+          _saveDailyRecordAndSync();
         }
       });
     }
