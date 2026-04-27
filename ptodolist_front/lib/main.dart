@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +26,13 @@ void main() async {
   if (!useMock) {
     await DatabaseService.init();
     await NotificationService.init();
+
+    // Firebase 초기화 (Android: google-services.json 자동 로드)
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      debugPrint('Firebase init failed (offline?): $e');
+    }
 
     // Home Widget 초기화
     _homeWidgetService = HomeWidgetService(
