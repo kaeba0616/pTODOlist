@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ptodolist/features/social/providers/social_providers.dart';
+import 'package:ptodolist/features/social/services/daily_share_sync_service.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/core/utils/streak_calculator.dart';
@@ -55,13 +56,31 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (mounted) setState(() {});
     });
     _initDailyRecord();
-    // 앱 시작 시 한 번 sync (로그인 + 프로필 있으면).
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(dailyShareSyncServiceProvider).syncToday(
+    // 앱 시작 시 한 번 sync. 에러일 때만 SnackBar (성공 시 조용함)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final result = await ref.read(dailyShareSyncServiceProvider).syncToday(
             record: _dailyRecord,
             activeRoutines: _activeRoutines,
           );
+      if (!mounted) return;
+      if (result is SyncedFailed) _showSyncSnack(result);
     });
+  }
+
+  void _showSyncSnack(SyncResult result) {
+    final msg = switch (result) {
+      SyncedOk(:final docId) => '✓ 동기화: $docId',
+      SyncedSkipped(:final reason) => '⚠ 동기화 스킵: $reason',
+      SyncedDeleted() => '🚫 비공개 모드 — 데이터 삭제',
+      SyncedFailed(:final error) => '✗ 동기화 실패: $error',
+    };
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(msg),
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+      ));
   }
 
   @override
@@ -157,10 +176,14 @@ class _HomeViewState extends ConsumerState<HomeView>
     widget.dailyRecordRepo?.save(_dailyRecord);
     final activeRoutines =
         widget.routineRepo.getAll().where((r) => r.isActive).toList();
-    ref.read(dailyShareSyncServiceProvider).syncToday(
-          record: _dailyRecord,
-          activeRoutines: activeRoutines,
-        );
+    // fire-and-forget — SnackBar 로 결과 노출 (디버깅 단계)
+    () async {
+      final result = await ref.read(dailyShareSyncServiceProvider).syncToday(
+            record: _dailyRecord,
+            activeRoutines: activeRoutines,
+          );
+      if (mounted) _showSyncSnack(result);
+    }();
   }
 
   void _toggleTask(String taskId) {
