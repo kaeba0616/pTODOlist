@@ -837,6 +837,7 @@ class _HomeViewState extends ConsumerState<HomeView>
             children: [
               // Checkbox
               GestureDetector(
+                key: Key('routine-toggle-${routine.id}'),
                 behavior: HitTestBehavior.opaque,
                 onTap: () => _toggleRoutine(routine.id),
                 child: Padding(
