@@ -310,7 +310,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         ? '다른 사람의 루틴을 보려면 로그인 필요'
         : (profile == null
             ? '프로필을 설정해주세요'
-            : '${profile.publicMode.label} · ${user.email ?? '익명'}');
+            : (profile.friendCode.isNotEmpty
+                ? '코드 ${profile.friendCode} · ${profile.publicMode.label}'
+                : '${profile.publicMode.label} · ${user.email ?? '익명'}'));
 
     return Container(
       padding: const EdgeInsets.all(16),

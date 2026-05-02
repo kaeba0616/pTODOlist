@@ -105,6 +105,7 @@ void main() {
         (_) async => UserProfile(
           uid: 'uid-1',
           nickname: 'me',
+          friendCode: 'AAAA-BBBB',
           publicMode: PublicMode.off,
           createdAt: DateTime(2026, 1, 1),
           updatedAt: DateTime(2026, 1, 1),
@@ -122,13 +123,14 @@ void main() {
       verifyNever(() => shareRepo.upsert(any()));
     });
 
-    test('publicMode today_only → SyncedOk, 정확한 share 객체로 upsert', () async {
+    test('publicMode friends → SyncedOk, 정확한 share 객체로 upsert', () async {
       when(() => auth.currentUser).thenReturn(user);
       when(() => profileRepo.get('uid-1')).thenAnswer(
         (_) async => UserProfile(
           uid: 'uid-1',
           nickname: '하이디',
-          publicMode: PublicMode.todayOnly,
+          friendCode: 'KX7B-29M3',
+          publicMode: PublicMode.friends,
           createdAt: DateTime(2026, 1, 1),
           updatedAt: DateTime(2026, 1, 1),
         ),
@@ -165,7 +167,8 @@ void main() {
         (_) async => UserProfile(
           uid: 'uid-1',
           nickname: 'me',
-          publicMode: PublicMode.always,
+          friendCode: 'CCCC-DDDD',
+          publicMode: PublicMode.friends,
           createdAt: DateTime(2026, 1, 1),
           updatedAt: DateTime(2026, 1, 1),
         ),

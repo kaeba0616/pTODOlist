@@ -18,7 +18,7 @@ class ProfileEditView extends ConsumerStatefulWidget {
 
 class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
   late final TextEditingController _nicknameController;
-  PublicMode _publicMode = PublicMode.todayOnly;
+  PublicMode _publicMode = PublicMode.friends;
   bool _busy = false;
   String? _error;
   bool _initialized = false;
@@ -39,7 +39,7 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
     if (_initialized) return;
     _initialized = true;
     _nicknameController.text = profile?.nickname ?? user.displayName ?? '';
-    _publicMode = profile?.publicMode ?? PublicMode.todayOnly;
+    _publicMode = profile?.publicMode ?? PublicMode.friends;
   }
 
   Future<void> _save() async {
@@ -60,6 +60,7 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
       final profile = UserProfile(
         uid: user.uid,
         nickname: nickname,
+        friendCode: existing?.friendCode ?? '', // 비어있으면 repo 가 자동 발급
         publicMode: _publicMode,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
@@ -105,7 +106,7 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '피드에 표시될 닉네임과 공개 범위를 정해주세요.',
+                  '닉네임을 정하면 친구 코드가 발급되고, 친구만 내 데이터를 볼 수 있어요.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
