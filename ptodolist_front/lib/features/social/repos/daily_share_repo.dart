@@ -32,4 +32,14 @@ class DailyShareRepository {
             .map((d) => DailyShare.fromMap(d.data()))
             .toList());
   }
+
+  /// 특정 사용자의 특정 날짜 share (실시간).
+  Stream<DailyShare?> watchUserDate(String uid, String date) {
+    return _shares.doc(DailyShare.docId(uid, date)).snapshots().map((snap) {
+      if (!snap.exists) return null;
+      final data = snap.data();
+      if (data == null) return null;
+      return DailyShare.fromMap(data);
+    });
+  }
 }

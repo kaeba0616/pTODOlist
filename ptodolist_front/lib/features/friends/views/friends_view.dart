@@ -6,6 +6,7 @@ import 'package:ptodolist/core/utils/friend_code_generator.dart';
 import 'package:ptodolist/features/auth/providers/auth_providers.dart';
 import 'package:ptodolist/features/friends/models/friendship.dart';
 import 'package:ptodolist/features/friends/providers/friends_providers.dart';
+import 'package:ptodolist/features/friends/views/friend_detail_view.dart';
 import 'package:ptodolist/features/profile/providers/profile_providers.dart';
 
 class FriendsView extends ConsumerStatefulWidget {
@@ -331,8 +332,13 @@ class _FriendsViewState extends ConsumerState<FriendsView> {
             return Text(p?.nickname.isNotEmpty == true ? p!.nickname : '친구');
           },
         ),
-        subtitle: Text('uid ${otherUid.substring(0, 6)}…',
-            style: const TextStyle(fontSize: 11)),
+        subtitle: const Text('탭해서 오늘 진행률 보기',
+            style: TextStyle(fontSize: 11)),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => FriendDetailView(friendUid: otherUid),
+          ),
+        ),
         trailing: PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (v) {
