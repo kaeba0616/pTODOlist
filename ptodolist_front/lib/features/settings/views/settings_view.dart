@@ -10,6 +10,8 @@ import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/storage_info.dart';
 import 'package:ptodolist/features/auth/providers/auth_providers.dart';
 import 'package:ptodolist/features/auth/views/login_view.dart';
+import 'package:ptodolist/features/friends/providers/friends_providers.dart';
+import 'package:ptodolist/features/friends/views/friends_view.dart';
 import 'package:ptodolist/features/profile/models/user_profile.dart';
 import 'package:ptodolist/features/profile/providers/profile_providers.dart';
 import 'package:ptodolist/features/profile/views/profile_edit_view.dart';
@@ -123,6 +125,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
           // Account section
           _buildAccountSection(theme, isDark),
+          const SizedBox(height: 12),
+          _buildFriendsEntry(theme, isDark),
           const SizedBox(height: 24),
 
           // Privacy card
@@ -381,6 +385,78 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   Future<void> _openProfileEdit() async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const ProfileEditView()),
+    );
+  }
+
+  Widget _buildFriendsEntry(ThemeData theme, bool isDark) {
+    final user = ref.watch(authStateProvider).valueOrNull;
+    final incoming = ref.watch(incomingRequestsProvider).valueOrNull ?? [];
+    final friends = ref.watch(myFriendshipsProvider).valueOrNull ?? [];
+    final cardColor = isDark
+        ? theme.colorScheme.surfaceContainerHigh
+        : theme.colorScheme.surface;
+
+    return Material(
+      color: cardColor,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: user == null
+            ? null
+            : () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const FriendsView()),
+                ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.people_outline,
+                  size: 28, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('친구',
+                        style: GoogleFonts.manrope(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(
+                      user == null
+                          ? '로그인 후 사용 가능'
+                          : '${friends.length}명${incoming.isNotEmpty ? ' · 받은 요청 ${incoming.length}' : ''}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (incoming.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.error,
+                    borderRadius: BorderRadius.circular(9999),
+                  ),
+                  child: Text(
+                    '${incoming.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
