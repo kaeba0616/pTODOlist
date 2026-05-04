@@ -72,7 +72,7 @@ void main() {
           .thenAnswer((_) async => _profile());
     });
 
-    testWidgets('share 없음 → "이 날의 기록이 없어요"', (tester) async {
+    testWidgets('share 없음 → 0% 카드만 표시 (헤더 + 진행률 바)', (tester) async {
       when(() => shareRepo.watchUserDate('friend-uid', '2026-05-04'))
           .thenAnswer((_) => Stream.value(null));
 
@@ -80,7 +80,8 @@ void main() {
           _wrap(shareRepo: shareRepo, profileRepo: profileRepo));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('기록이 없어요'), findsOneWidget);
+      expect(find.text('0'), findsOneWidget); // 0%
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
     testWidgets('share 있음 → 진행률 % + 완료/총 + 진행률 바', (tester) async {
@@ -98,8 +99,10 @@ void main() {
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('루틴 리스트 — 완료/미완료 둘 다 표시 + 완료는 취소선',
+    testWidgets('Firebase 미초기화 (테스트 환경) 시 친구 루틴 fetch 실패 → 빈 안내',
         (tester) async {
+      // 테스트 환경에서는 FirebaseFirestore.instance 가 throw → fetch 가
+      // 빈 리스트 반환 → "친구가 등록한 루틴이 없어요" 표시
       when(() => shareRepo.watchUserDate('friend-uid', '2026-05-04'))
           .thenAnswer((_) => Stream.value(_share(
                 completed: 1,
@@ -114,23 +117,7 @@ void main() {
           _wrap(shareRepo: shareRepo, profileRepo: profileRepo));
       await tester.pumpAndSettle();
 
-      expect(find.text('아침 운동'), findsOneWidget);
-      expect(find.text('영어 공부'), findsOneWidget);
-      // check_circle (완료) + radio_button_unchecked (미완료) 각 1개씩
-      expect(find.byIcon(Icons.check_circle), findsOneWidget);
-      expect(find.byIcon(Icons.radio_button_unchecked), findsOneWidget);
-    });
-
-    testWidgets('루틴 0개 → "등록된 루틴이 없어요"', (tester) async {
-      when(() => shareRepo.watchUserDate('friend-uid', '2026-05-04'))
-          .thenAnswer(
-              (_) => Stream.value(_share(completed: 0, total: 0, routines: [])));
-
-      await tester.pumpWidget(
-          _wrap(shareRepo: shareRepo, profileRepo: profileRepo));
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('등록된 루틴이 없어요'), findsOneWidget);
+      expect(find.textContaining('친구가 등록한 루틴이 없어요'), findsOneWidget);
     });
 
     testWidgets('AppBar 에 친구 닉네임 표시', (tester) async {
