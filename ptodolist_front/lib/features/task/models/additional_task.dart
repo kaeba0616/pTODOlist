@@ -94,4 +94,31 @@ class AdditionalTask {
     Object.hashAll(subtasks),
     Object.hashAll(subtaskCompletions),
   );
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'title': title,
+        'categoryId': categoryId,
+        'createdAt': createdAt.toIso8601String(),
+        'targetDate': targetDate,
+        'isCompleted': isCompleted,
+        'order': order,
+        'subtasks': subtasks,
+        'subtaskCompletions': subtaskCompletions,
+      };
+
+  factory AdditionalTask.fromMap(Map<String, dynamic> map) => AdditionalTask(
+        id: map['id'] as String,
+        title: (map['title'] as String?) ?? '',
+        categoryId: (map['categoryId'] as String?) ?? '',
+        createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ??
+            DateTime.now(),
+        targetDate: (map['targetDate'] as String?) ?? '',
+        isCompleted: (map['isCompleted'] as bool?) ?? false,
+        order: (map['order'] as num?)?.toInt() ?? 0,
+        subtasks:
+            (map['subtasks'] as List<dynamic>? ?? []).cast<String>(),
+        subtaskCompletions:
+            (map['subtaskCompletions'] as List<dynamic>? ?? []).cast<bool>(),
+      );
 }

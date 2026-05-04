@@ -28,4 +28,15 @@ class DailyRecord {
 
   double get completionRate =>
       totalCount == 0 ? 0.0 : completedCount / totalCount;
+
+  Map<String, dynamic> toMap() => {
+        'date': date,
+        'routineCompletions': routineCompletions,
+      };
+
+  factory DailyRecord.fromMap(Map<String, dynamic> map) => DailyRecord(
+        date: (map['date'] as String?) ?? '',
+        routineCompletions: Map<String, bool>.from(
+            (map['routineCompletions'] as Map<dynamic, dynamic>? ?? {})),
+      );
 }

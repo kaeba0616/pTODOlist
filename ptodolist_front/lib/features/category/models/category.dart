@@ -32,4 +32,18 @@ class Category {
 
   @override
   int get hashCode => Object.hash(id, name, color, icon);
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'name': name,
+        'color': color,
+        'icon': icon,
+      };
+
+  factory Category.fromMap(Map<String, dynamic> map) => Category(
+        id: map['id'] as String,
+        name: (map['name'] as String?) ?? '',
+        color: (map['color'] as String?) ?? '#9E9E9E',
+        icon: map['icon'] as String?,
+      );
 }

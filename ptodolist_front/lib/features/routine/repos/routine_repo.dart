@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:ptodolist/core/auth/current_user.dart';
 import 'package:ptodolist/features/routine/models/routine.dart';
 import 'package:ptodolist/features/routine/mocks/routine_mock.dart';
 import 'package:hive/hive.dart';
@@ -8,7 +11,45 @@ class RoutineRepository {
   final Box<Routine>? _box;
   List<Routine> _mockData = List.from(mockRoutines);
 
-  RoutineRepository({this.useMock = false, Box<Routine>? box}) : _box = box;
+  /// Cloud sync (선택적) — uid 가 set 된 경우에만 Firestore mirror 작동.
+  FirebaseFirestore? _firestore;
+  String? _uid;
+
+  RoutineRepository({
+    this.useMock = false,
+    Box<Routine>? box,
+    FirebaseFirestore? firestore,
+    String? uid,
+  })  : _box = box,
+        _firestore = firestore,
+        _uid = uid;
+
+  /// 로그인 시 호출. null = 로그아웃.
+  void setUid(String? uid) {
+    _uid = uid;
+  }
+
+  CollectionReference<Map<String, dynamic>> _cloud(String uid) =>
+      (_firestore ?? FirebaseFirestore.instance)
+          .collection('users')
+          .doc(uid)
+          .collection('routines');
+
+  void _pushCloud(Routine r) {
+    final uid = _uid ?? CurrentUser.uid;
+    if (uid == null) return;
+    _cloud(uid).doc(r.id).set(r.toMap()).catchError((Object e, StackTrace st) {
+      debugPrint('routine push failed: $e');
+    });
+  }
+
+  void _deleteCloud(String id) {
+    final uid = _uid ?? CurrentUser.uid;
+    if (uid == null) return;
+    _cloud(uid).doc(id).delete().catchError((Object e, StackTrace st) {
+      debugPrint('routine delete failed: $e');
+    });
+  }
 
   static const _uuid = Uuid();
 
@@ -69,6 +110,7 @@ class RoutineRepository {
       await _box!.put(id, routine);
       await _box!.flush();
     }
+    _pushCloud(routine);
     return id;
   }
 
@@ -80,6 +122,7 @@ class RoutineRepository {
       await _box!.put(routine.id, routine);
       await _box!.flush();
     }
+    _pushCloud(routine);
   }
 
   bool delete(String id) {
@@ -87,12 +130,16 @@ class RoutineRepository {
     if (useMock) {
       final index = _mockData.indexWhere((r) => r.id == id);
       if (index == -1) return false;
-      _mockData[index] = _mockData[index].copyWith(deletedAt: () => today);
+      final updated = _mockData[index].copyWith(deletedAt: () => today);
+      _mockData[index] = updated;
+      _pushCloud(updated);
       return true;
     }
     final routine = _box!.get(id);
     if (routine != null) {
-      _box!.put(id, routine.copyWith(deletedAt: () => today));
+      final updated = routine.copyWith(deletedAt: () => today);
+      _box!.put(id, updated);
+      _pushCloud(updated);
       return true;
     }
     return false;
@@ -102,7 +149,9 @@ class RoutineRepository {
     if (useMock) {
       _mockData = _mockData.map((r) {
         if (r.categoryId == oldCategoryId) {
-          return r.copyWith(categoryId: newCategoryId);
+          final updated = r.copyWith(categoryId: newCategoryId);
+          _pushCloud(updated);
+          return updated;
         }
         return r;
       }).toList();
@@ -110,8 +159,24 @@ class RoutineRepository {
       for (final routine in _box!.values.where(
         (r) => r.categoryId == oldCategoryId,
       )) {
-        _box!.put(routine.id, routine.copyWith(categoryId: newCategoryId));
+        final updated = routine.copyWith(categoryId: newCategoryId);
+        _box!.put(routine.id, updated);
+        _pushCloud(updated);
       }
     }
+  }
+
+  /// CloudSyncService 가 pull 한 후 일괄 적용할 때 사용.
+  /// 로컬을 비우고 새 데이터로 채움. cloud push 안 함 (pull 결과니까).
+  Future<void> replaceAllLocal(List<Routine> routines) async {
+    if (useMock) {
+      _mockData = List.from(routines);
+      return;
+    }
+    await _box!.clear();
+    for (final r in routines) {
+      await _box!.put(r.id, r);
+    }
+    await _box!.flush();
   }
 }

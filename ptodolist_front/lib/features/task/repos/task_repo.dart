@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:ptodolist/core/auth/current_user.dart';
 import 'package:ptodolist/features/task/models/additional_task.dart';
 import 'package:ptodolist/features/task/mocks/task_mock.dart';
 import 'package:hive/hive.dart';
@@ -9,7 +12,43 @@ class TaskRepository {
   final Box<AdditionalTask>? _box;
   List<AdditionalTask> _mockData = List.from(mockTasks);
 
-  TaskRepository({this.useMock = false, Box<AdditionalTask>? box}) : _box = box;
+  FirebaseFirestore? _firestore;
+  String? _uid;
+
+  TaskRepository({
+    this.useMock = false,
+    Box<AdditionalTask>? box,
+    FirebaseFirestore? firestore,
+    String? uid,
+  })  : _box = box,
+        _firestore = firestore,
+        _uid = uid;
+
+  void setUid(String? uid) {
+    _uid = uid;
+  }
+
+  CollectionReference<Map<String, dynamic>> _cloud(String uid) =>
+      (_firestore ?? FirebaseFirestore.instance)
+          .collection('users')
+          .doc(uid)
+          .collection('tasks');
+
+  void _pushCloud(AdditionalTask t) {
+    final uid = _uid ?? CurrentUser.uid;
+    if (uid == null) return;
+    _cloud(uid).doc(t.id).set(t.toMap()).catchError((Object e, StackTrace st) {
+      debugPrint('task push failed: $e');
+    });
+  }
+
+  void _deleteCloud(String id) {
+    final uid = _uid ?? CurrentUser.uid;
+    if (uid == null) return;
+    _cloud(uid).doc(id).delete().catchError((Object e, StackTrace st) {
+      debugPrint('task delete failed: $e');
+    });
+  }
 
   static const _uuid = Uuid();
   static final _dateFmt = DateFormat('yyyy-MM-dd');
@@ -70,6 +109,7 @@ class TaskRepository {
       await _box!.put(task.id, task);
       await _box!.flush();
     }
+    _pushCloud(task);
   }
 
   Future<String> add({
@@ -94,6 +134,7 @@ class TaskRepository {
       await _box!.put(id, task);
       await _box!.flush();
     }
+    _pushCloud(task);
     return id;
   }
 
@@ -116,6 +157,7 @@ class TaskRepository {
       await _box!.put(id, updated);
       await _box!.flush();
     }
+    _pushCloud(updated);
   }
 
   Future<void> toggleSubtask(String taskId, int index) async {
@@ -144,26 +186,43 @@ class TaskRepository {
       await _box!.put(taskId, updated);
       await _box!.flush();
     }
+    _pushCloud(updated);
   }
 
   bool delete(String id) {
     if (useMock) {
       final len = _mockData.length;
       _mockData.removeWhere((t) => t.id == id);
+      _deleteCloud(id);
       return _mockData.length < len;
     }
     if (_box!.containsKey(id)) {
       _box!.delete(id);
+      _deleteCloud(id);
       return true;
     }
     return false;
+  }
+
+  Future<void> replaceAllLocal(List<AdditionalTask> tasks) async {
+    if (useMock) {
+      _mockData = List.from(tasks);
+      return;
+    }
+    await _box!.clear();
+    for (final t in tasks) {
+      await _box!.put(t.id, t);
+    }
+    await _box!.flush();
   }
 
   void reassignCategory(String oldCategoryId, String newCategoryId) {
     if (useMock) {
       _mockData = _mockData.map((t) {
         if (t.categoryId == oldCategoryId) {
-          return t.copyWith(categoryId: newCategoryId);
+          final updated = t.copyWith(categoryId: newCategoryId);
+          _pushCloud(updated);
+          return updated;
         }
         return t;
       }).toList();
@@ -171,7 +230,9 @@ class TaskRepository {
       for (final task in _box!.values.where(
         (t) => t.categoryId == oldCategoryId,
       )) {
-        _box!.put(task.id, task.copyWith(categoryId: newCategoryId));
+        final updated = task.copyWith(categoryId: newCategoryId);
+        _box!.put(task.id, updated);
+        _pushCloud(updated);
       }
     }
   }

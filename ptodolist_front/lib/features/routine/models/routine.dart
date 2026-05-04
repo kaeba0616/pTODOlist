@@ -98,4 +98,35 @@ class Routine {
     Object.hashAll(subtasks),
     Object.hashAll(activeDays),
   );
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'title': title,
+        'categoryId': categoryId,
+        'createdAt': createdAt.toIso8601String(),
+        'isActive': isActive,
+        'order': order,
+        'subtasks': subtasks,
+        'priority': priority,
+        'iconCodePoint': iconCodePoint,
+        'activeDays': activeDays,
+        'deletedAt': deletedAt,
+      };
+
+  factory Routine.fromMap(Map<String, dynamic> map) => Routine(
+        id: map['id'] as String,
+        title: (map['title'] as String?) ?? '',
+        categoryId: (map['categoryId'] as String?) ?? '',
+        createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ??
+            DateTime.now(),
+        isActive: (map['isActive'] as bool?) ?? true,
+        order: (map['order'] as num?)?.toInt() ?? 0,
+        subtasks:
+            (map['subtasks'] as List<dynamic>? ?? []).cast<String>(),
+        priority: (map['priority'] as num?)?.toInt() ?? 1,
+        iconCodePoint: (map['iconCodePoint'] as num?)?.toInt(),
+        activeDays:
+            (map['activeDays'] as List<dynamic>? ?? []).cast<int>(),
+        deletedAt: map['deletedAt'] as String?,
+      );
 }

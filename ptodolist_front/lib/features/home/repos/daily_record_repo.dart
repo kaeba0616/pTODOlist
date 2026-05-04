@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:ptodolist/core/auth/current_user.dart';
 import 'package:ptodolist/features/home/models/daily_record.dart';
 import 'package:ptodolist/features/routine/models/routine.dart';
 
@@ -8,10 +11,50 @@ class DailyRecordRepository {
   final Box<DailyRecord>? _box;
   final Map<String, DailyRecord> _mockData = {};
 
+  FirebaseFirestore? _firestore;
+  String? _uid;
+
   static final _dateFmt = DateFormat('yyyy-MM-dd');
 
-  DailyRecordRepository({this.useMock = false, Box<DailyRecord>? box})
-    : _box = box;
+  DailyRecordRepository({
+    this.useMock = false,
+    Box<DailyRecord>? box,
+    FirebaseFirestore? firestore,
+    String? uid,
+  })  : _box = box,
+        _firestore = firestore,
+        _uid = uid;
+
+  void setUid(String? uid) {
+    _uid = uid;
+  }
+
+  CollectionReference<Map<String, dynamic>> _cloud(String uid) =>
+      (_firestore ?? FirebaseFirestore.instance)
+          .collection('users')
+          .doc(uid)
+          .collection('dailyRecords');
+
+  void _pushCloud(DailyRecord r) {
+    final uid = _uid ?? CurrentUser.uid;
+    if (uid == null) return;
+    _cloud(uid).doc(r.date).set(r.toMap()).catchError((Object e, StackTrace st) {
+      debugPrint('dailyRecord push failed: $e');
+    });
+  }
+
+  Future<void> replaceAllLocal(List<DailyRecord> records) async {
+    if (useMock) {
+      _mockData
+        ..clear()
+        ..addEntries(records.map((r) => MapEntry(r.date, r)));
+      return;
+    }
+    await _box!.clear();
+    for (final r in records) {
+      await _box!.put(r.date, r);
+    }
+  }
 
   String get todayKey => _dateFmt.format(DateTime.now());
 
@@ -105,5 +148,6 @@ class DailyRecordRepository {
     } else {
       _box!.put(key, record);
     }
+    _pushCloud(record);
   }
 }
