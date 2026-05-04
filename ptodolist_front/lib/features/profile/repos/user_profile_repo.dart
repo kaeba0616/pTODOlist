@@ -66,9 +66,14 @@ class UserProfileRepository {
   }
 
   /// 친구 코드 → uid 조회 (요청 보낼 때 사용).
+  /// 사용자 입력은 하이픈/공백 유무에 상관없이 받지만, 저장된 doc id 는
+  /// generate() 가 만든 display 형식("XXXX-XXXX") 이므로 8자면 하이픈을 끼움.
   Future<String?> findUidByFriendCode(String code) async {
     final normalized = FriendCodeGenerator.normalize(code);
-    final snap = await _codes.doc(normalized).get();
+    final docId = normalized.length == 8
+        ? '${normalized.substring(0, 4)}-${normalized.substring(4)}'
+        : normalized;
+    final snap = await _codes.doc(docId).get();
     if (!snap.exists) return null;
     return snap.data()?['uid'] as String?;
   }
