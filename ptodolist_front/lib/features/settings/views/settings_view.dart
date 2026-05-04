@@ -8,10 +8,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:ptodolist/core/db/backup_service.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/storage_info.dart';
+import 'package:ptodolist/core/auth/current_user.dart';
 import 'package:ptodolist/features/auth/providers/auth_providers.dart';
 import 'package:ptodolist/features/auth/views/login_view.dart';
 import 'package:ptodolist/features/friends/providers/friends_providers.dart';
 import 'package:ptodolist/features/friends/views/friends_view.dart';
+import 'package:ptodolist/main.dart' show cloudSyncService;
 import 'package:ptodolist/features/profile/models/user_profile.dart';
 import 'package:ptodolist/features/profile/providers/profile_providers.dart';
 import 'package:ptodolist/features/profile/views/profile_edit_view.dart';
@@ -127,6 +129,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           _buildAccountSection(theme, isDark),
           const SizedBox(height: 12),
           _buildFriendsEntry(theme, isDark),
+          const SizedBox(height: 12),
+          _buildForceSyncEntry(theme, isDark),
           const SizedBox(height: 24),
 
           // Privacy card
@@ -386,6 +390,83 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const ProfileEditView()),
     );
+  }
+
+  Widget _buildForceSyncEntry(ThemeData theme, bool isDark) {
+    final cardColor = isDark
+        ? theme.colorScheme.surfaceContainerHigh
+        : theme.colorScheme.surface;
+    return Material(
+      color: cardColor,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: _forcePush,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.cloud_upload_outlined,
+                  size: 28, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('강제 동기화 (DEBUG)',
+                        style: GoogleFonts.manrope(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text(
+                      '로컬 데이터를 클라우드로 강제 push (디버깅용)',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _forcePush() async {
+    final uid = CurrentUser.uid;
+    if (uid == null) {
+      _snack('로그인이 필요해요');
+      return;
+    }
+    final svc = cloudSyncService;
+    if (svc == null) {
+      _snack('CloudSync 서비스 미초기화');
+      return;
+    }
+    _snack('동기화 중...');
+    final result = await svc.forcePushAll(uid);
+    if (!mounted) return;
+    if (result.isError) {
+      _snack('동기화 실패: ${result.error}');
+    } else {
+      _snack(
+          'R${result.routines} / C${result.categories} / T${result.tasks} / D${result.dailyRecords} push 완료');
+    }
+  }
+
+  void _snack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(msg),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+      ));
   }
 
   Widget _buildFriendsEntry(ThemeData theme, bool isDark) {

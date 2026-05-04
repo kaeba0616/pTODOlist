@@ -83,7 +83,8 @@ void main() {
       // 설정 탭
       await tester.tap(find.text('설정').last);
       await tester.pumpAndSettle();
-      expect(find.text('카테고리 관리'), findsOneWidget);
+      // 설정 화면이 떴는지 — 헤더 "WORKSPACE" 확인 (always at top)
+      expect(find.text('WORKSPACE'), findsOneWidget);
     });
   });
 }

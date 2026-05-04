@@ -93,23 +93,60 @@ class CloudSyncService {
 
   /// 첫 로그인 시 기존 로컬 데이터를 클라우드로 올림.
   /// (마이그레이션용 — 이미 cloud 에 데이터 있으면 호출하지 않는 게 좋음)
-  Future<void> pushAllExisting(String uid) async {
-    bindUid(uid);
-    final batch = _firestore.batch();
-    for (final r in routineRepo.getAllIncludingDeleted()) {
-      batch.set(_userColl(uid, 'routines').doc(r.id), r.toMap());
+  /// 결과로 각 컬렉션 push 개수 + 에러 반환 (디버깅 용).
+  Future<ForcePushResult> forcePushAll(String uid) async {
+    try {
+      bindUid(uid);
+      final batch = _firestore.batch();
+      int r = 0, c = 0, t = 0, d = 0;
+      for (final routine in routineRepo.getAllIncludingDeleted()) {
+        batch.set(_userColl(uid, 'routines').doc(routine.id), routine.toMap());
+        r++;
+      }
+      for (final cat in categoryRepo.getAll()) {
+        batch.set(_userColl(uid, 'categories').doc(cat.id), cat.toMap());
+        c++;
+      }
+      for (final task in taskRepo.getAll()) {
+        batch.set(_userColl(uid, 'tasks').doc(task.id), task.toMap());
+        t++;
+      }
+      final dailyKeys = dailyRecordRepo.getRecordsInRange(
+          '0000-01-01', '9999-12-31');
+      for (final dr in dailyKeys) {
+        batch.set(_userColl(uid, 'dailyRecords').doc(dr.date), dr.toMap());
+        d++;
+      }
+      await batch.commit();
+      return ForcePushResult(
+          routines: r, categories: c, tasks: t, dailyRecords: d);
+    } catch (e, st) {
+      debugPrint('forcePushAll failed: $e\n$st');
+      return ForcePushResult(error: e, stackTrace: st);
     }
-    for (final c in categoryRepo.getAll()) {
-      batch.set(_userColl(uid, 'categories').doc(c.id), c.toMap());
-    }
-    for (final t in taskRepo.getAll()) {
-      batch.set(_userColl(uid, 'tasks').doc(t.id), t.toMap());
-    }
-    // dailyRecords 은 batch 한도 (500) 신경 써서 — 보통 N 일치라 OK
-    final dailyKeys = dailyRecordRepo.getRecordsInRange('0000-01-01', '9999-12-31');
-    for (final dr in dailyKeys) {
-      batch.set(_userColl(uid, 'dailyRecords').doc(dr.date), dr.toMap());
-    }
-    await batch.commit();
   }
+
+  /// 하위호환 (기존 호출자) — 결과는 무시.
+  Future<void> pushAllExisting(String uid) => forcePushAll(uid);
+}
+
+class ForcePushResult {
+  final int routines;
+  final int categories;
+  final int tasks;
+  final int dailyRecords;
+  final Object? error;
+  final StackTrace? stackTrace;
+
+  const ForcePushResult({
+    this.routines = 0,
+    this.categories = 0,
+    this.tasks = 0,
+    this.dailyRecords = 0,
+    this.error,
+    this.stackTrace,
+  });
+
+  bool get isError => error != null;
+  int get total => routines + categories + tasks + dailyRecords;
 }

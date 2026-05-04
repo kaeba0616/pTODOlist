@@ -25,6 +25,9 @@ import 'package:ptodolist/features/home_widget/services/home_widget_service.dart
 HomeWidgetService? _homeWidgetService;
 CloudSyncService? _cloudSync;
 
+/// 디버그/강제동기화용 외부 접근.
+CloudSyncService? get cloudSyncService => _cloudSync;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ko_KR', null);
