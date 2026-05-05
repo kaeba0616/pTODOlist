@@ -129,8 +129,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           _buildAccountSection(theme, isDark),
           const SizedBox(height: 12),
           _buildFriendsEntry(theme, isDark),
-          const SizedBox(height: 12),
-          _buildForceSyncEntry(theme, isDark),
           const SizedBox(height: 24),
 
           // Privacy card

@@ -99,14 +99,26 @@ void _wireAuthListener() {
       lastUid = null;
       await settingsBox.delete('lastSignedInUid');
     } else {
-      // 다른 계정으로 로그인 → wipe + pull
-      debugPrint('[auth] uid changed: $lastUid → $newUid — wipe+pull');
+      // 다른 계정으로 로그인 (또는 첫 로그인)
+      debugPrint('[auth] uid changed: $lastUid → $newUid');
       CurrentUser.uid = newUid;
-      await _cloudSync?.wipeLocal();
+
+      // 마이그레이션 판단: cloud 가 비었고 로컬에 데이터가 있으면 push.
+      // 그렇지 않으면 로컬 wipe + pull (계정 전환).
       try {
-        await _cloudSync?.pullAll(newUid);
+        final hasCloud = await _cloudSync?.hasAnyData(newUid) ?? false;
+        final hasLocal = _cloudSync?.hasAnyLocal() ?? false;
+        if (!hasCloud && hasLocal && lastUid == null) {
+          // 첫 로그인 + 로컬에 기존 데이터 → 마이그레이션 (push)
+          debugPrint('[auth] migration: pushing local → cloud');
+          await _cloudSync?.forcePushAll(newUid);
+        } else {
+          // 계정 전환 또는 신규 가입 → wipe + pull
+          await _cloudSync?.wipeLocal();
+          await _cloudSync?.pullAll(newUid);
+        }
       } catch (e) {
-        debugPrint('[auth] pullAll failed: $e');
+        debugPrint('[auth] migration/sync failed: $e');
       }
       lastUid = newUid;
       await settingsBox.put('lastSignedInUid', newUid);

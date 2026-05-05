@@ -33,20 +33,26 @@ class CategoryRepository {
           .doc(uid)
           .collection('categories');
 
-  void _pushCloud(Category c) {
+  Future<void> _pushCloud(Category c) async {
     final uid = _uid ?? CurrentUser.uid;
     if (uid == null) return;
-    _cloud(uid).doc(c.id).set(c.toMap()).catchError((Object e, StackTrace st) {
-      debugPrint('category push failed: $e');
-    });
+    try {
+      await _cloud(uid).doc(c.id).set(c.toMap());
+    } catch (e, st) {
+      debugPrint('category push FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
-  void _deleteCloud(String id) {
+  Future<void> _deleteCloud(String id) async {
     final uid = _uid ?? CurrentUser.uid;
     if (uid == null) return;
-    _cloud(uid).doc(id).delete().catchError((Object e, StackTrace st) {
-      debugPrint('category delete failed: $e');
-    });
+    try {
+      await _cloud(uid).doc(id).delete();
+    } catch (e, st) {
+      debugPrint('category delete FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
   static const _uuid = Uuid();
@@ -67,31 +73,31 @@ class CategoryRepository {
     return _box!.get(id);
   }
 
-  String add({required String name, required String color}) {
+  Future<String> add({required String name, required String color}) async {
     final id = _uuid.v4();
     final category = Category(id: id, name: name, color: color);
     if (useMock) {
       _mockData.add(category);
     } else {
-      _box!.put(id, category);
+      await _box!.put(id, category);
     }
-    _pushCloud(category);
+    await _pushCloud(category);
     return id;
   }
 
-  void update(Category category) {
+  Future<void> update(Category category) async {
     if (useMock) {
       final index = _mockData.indexWhere((c) => c.id == category.id);
       if (index != -1) {
         _mockData[index] = category;
       }
     } else {
-      _box!.put(category.id, category);
+      await _box!.put(category.id, category);
     }
-    _pushCloud(category);
+    await _pushCloud(category);
   }
 
-  bool delete(String id) {
+  Future<bool> delete(String id) async {
     final category = getById(id);
     if (category == null) return false;
     if (category.name == '기타') return false;
@@ -99,9 +105,9 @@ class CategoryRepository {
     if (useMock) {
       _mockData.removeWhere((c) => c.id == id);
     } else {
-      _box!.delete(id);
+      await _box!.delete(id);
     }
-    _deleteCloud(id);
+    await _deleteCloud(id);
     return true;
   }
 

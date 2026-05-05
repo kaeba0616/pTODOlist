@@ -9,11 +9,11 @@ void main() {
       repo = RoutineRepository(useMock: true);
     });
 
-    test('Mock 루틴 8개가 반환된다', () {
+    test('Mock 루틴 8개가 반환된다', () async {
       expect(repo.getAll().length, 8);
     });
 
-    test('활성 루틴만 필터한다', () {
+    test('활성 루틴만 필터한다', () async {
       final active = repo.getActive();
       expect(active.length, 8); // 기본 전부 active
     });
@@ -36,8 +36,8 @@ void main() {
       expect(repo.getActive().length, 7);
     });
 
-    test('루틴을 삭제한다 (soft delete)', () {
-      expect(repo.delete('r-1'), true);
+    test('루틴을 삭제한다 (soft delete)', () async {
+      expect(await repo.delete('r-1'), true);
       expect(repo.getAll().length, 7);
       // soft delete이므로 getById로 여전히 조회 가능
       final deleted = repo.getById('r-1');
@@ -46,14 +46,14 @@ void main() {
       expect(deleted.deletedAt, isNotNull);
     });
 
-    test('삭제된 루틴은 getAllIncludingDeleted에 포함된다', () {
-      repo.delete('r-1');
+    test('삭제된 루틴은 getAllIncludingDeleted에 포함된다', () async {
+      await repo.delete('r-1');
       expect(repo.getAll().length, 7);
       expect(repo.getAllIncludingDeleted().length, 8);
     });
 
-    test('카테고리 재할당한다', () {
-      repo.reassignCategory('cat-1', 'cat-5');
+    test('카테고리 재할당한다', () async {
+      await repo.reassignCategory('cat-1', 'cat-5');
       final reassigned = repo.getAll().where((r) => r.categoryId == 'cat-5');
       // r-1(운동), r-7(운동) → cat-5로 이동
       expect(reassigned.length, greaterThanOrEqualTo(2));

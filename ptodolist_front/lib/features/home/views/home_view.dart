@@ -186,10 +186,9 @@ class _HomeViewState extends ConsumerState<HomeView>
     }();
   }
 
-  void _toggleTask(String taskId) {
-    setState(() {
-      widget.taskRepo.toggleComplete(taskId);
-    });
+  Future<void> _toggleTask(String taskId) async {
+    await widget.taskRepo.toggleComplete(taskId);
+    if (mounted) setState(() {});
     widget.homeWidgetService?.updateWidgetData();
   }
 
@@ -211,7 +210,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (result == null || !mounted) return;
 
     if (result['_action'] == 'delete') {
-      widget.routineRepo.delete(freshRoutine.id);
+      await widget.routineRepo.delete(freshRoutine.id);
       setState(() {
         final completions = Map<String, bool>.from(
           _dailyRecord.routineCompletions,
@@ -261,7 +260,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     if (result == null || !mounted) return;
 
     if (result['_action'] == 'delete') {
-      widget.taskRepo.delete(freshTask.id);
+      await widget.taskRepo.delete(freshTask.id);
       setState(() {});
       widget.homeWidgetService?.updateWidgetData();
       return;

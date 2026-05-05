@@ -35,20 +35,29 @@ class RoutineRepository {
           .doc(uid)
           .collection('routines');
 
-  void _pushCloud(Routine r) {
+  Future<void> _pushCloud(Routine r) async {
     final uid = _uid ?? CurrentUser.uid;
-    if (uid == null) return;
-    _cloud(uid).doc(r.id).set(r.toMap()).catchError((Object e, StackTrace st) {
-      debugPrint('routine push failed: $e');
-    });
+    if (uid == null) {
+      debugPrint('routine push skipped: no uid');
+      return;
+    }
+    try {
+      await _cloud(uid).doc(r.id).set(r.toMap());
+    } catch (e, st) {
+      debugPrint('routine push FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
-  void _deleteCloud(String id) {
+  Future<void> _deleteCloud(String id) async {
     final uid = _uid ?? CurrentUser.uid;
     if (uid == null) return;
-    _cloud(uid).doc(id).delete().catchError((Object e, StackTrace st) {
-      debugPrint('routine delete failed: $e');
-    });
+    try {
+      await _cloud(uid).doc(id).delete();
+    } catch (e, st) {
+      debugPrint('routine delete FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
   static const _uuid = Uuid();
@@ -110,7 +119,7 @@ class RoutineRepository {
       await _box!.put(id, routine);
       await _box!.flush();
     }
-    _pushCloud(routine);
+    await _pushCloud(routine);
     return id;
   }
 
@@ -122,46 +131,50 @@ class RoutineRepository {
       await _box!.put(routine.id, routine);
       await _box!.flush();
     }
-    _pushCloud(routine);
+    await _pushCloud(routine);
   }
 
-  bool delete(String id) {
+  Future<bool> delete(String id) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     if (useMock) {
       final index = _mockData.indexWhere((r) => r.id == id);
       if (index == -1) return false;
       final updated = _mockData[index].copyWith(deletedAt: () => today);
       _mockData[index] = updated;
-      _pushCloud(updated);
+      await _pushCloud(updated);
       return true;
     }
     final routine = _box!.get(id);
     if (routine != null) {
       final updated = routine.copyWith(deletedAt: () => today);
-      _box!.put(id, updated);
-      _pushCloud(updated);
+      await _box!.put(id, updated);
+      await _pushCloud(updated);
       return true;
     }
     return false;
   }
 
-  void reassignCategory(String oldCategoryId, String newCategoryId) {
+  Future<void> reassignCategory(
+      String oldCategoryId, String newCategoryId) async {
     if (useMock) {
-      _mockData = _mockData.map((r) {
+      final newList = <Routine>[];
+      for (final r in _mockData) {
         if (r.categoryId == oldCategoryId) {
           final updated = r.copyWith(categoryId: newCategoryId);
-          _pushCloud(updated);
-          return updated;
+          await _pushCloud(updated);
+          newList.add(updated);
+        } else {
+          newList.add(r);
         }
-        return r;
-      }).toList();
+      }
+      _mockData = newList;
     } else {
-      for (final routine in _box!.values.where(
-        (r) => r.categoryId == oldCategoryId,
-      )) {
+      for (final routine in _box!.values
+          .where((r) => r.categoryId == oldCategoryId)
+          .toList()) {
         final updated = routine.copyWith(categoryId: newCategoryId);
-        _box!.put(routine.id, updated);
-        _pushCloud(updated);
+        await _box!.put(routine.id, updated);
+        await _pushCloud(updated);
       }
     }
   }

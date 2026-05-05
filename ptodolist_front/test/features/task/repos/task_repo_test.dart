@@ -9,11 +9,11 @@ void main() {
       repo = TaskRepository(useMock: true);
     });
 
-    test('Mock 할 일 3개가 반환된다', () {
+    test('Mock 할 일 3개가 반환된다', () async {
       expect(repo.getAll().length, 3);
     });
 
-    test('날짜별 필터한다', () {
+    test('날짜별 필터한다', () async {
       final tasks = repo.getByDate('2026-03-17');
       expect(tasks.length, 3);
     });
@@ -42,13 +42,13 @@ void main() {
       expect(repo.getById('t-2')!.isCompleted, false);
     });
 
-    test('할 일을 삭제한다', () {
-      expect(repo.delete('t-1'), true);
+    test('할 일을 삭제한다', () async {
+      expect(await repo.delete('t-1'), true);
       expect(repo.getAll().length, 2);
     });
 
-    test('카테고리 재할당한다', () {
-      repo.reassignCategory('cat-4', 'cat-5');
+    test('카테고리 재할당한다', () async {
+      await repo.reassignCategory('cat-4', 'cat-5');
       final reassigned = repo.getAll().where((t) => t.categoryId == 'cat-5');
       expect(reassigned.length, 2); // t-1, t-3
     });
@@ -70,7 +70,7 @@ void main() {
       expect(repo.getById('t-1')!.subtasks, ['빵', '버터']);
     });
 
-    test('getOverdue: 미완료 + 지난 날짜만 반환한다', () {
+    test('getOverdue: 미완료 + 지난 날짜만 반환한다', () async {
       // 기존 mock은 '2026-03-17', 오늘이 '2026-03-19'이면 overdue
       final overdue = repo.getOverdue('2026-03-19');
       // t-1(미완료), t-3(미완료)는 overdue, t-2(완료)는 아님
@@ -129,7 +129,7 @@ void main() {
         expect(upcoming.map((t) => t.title).toList(), ['A', 'B']);
       });
 
-      test('미래 할일이 없으면 빈 리스트', () {
+      test('미래 할일이 없으면 빈 리스트', () async {
         final upcoming = repo.getUpcoming('2030-01-01');
         expect(upcoming, isEmpty);
       });

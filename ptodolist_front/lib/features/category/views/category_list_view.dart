@@ -24,15 +24,15 @@ class _CategoryListViewState extends State<CategoryListView> {
     );
 
     if (result != null && mounted) {
-      setState(() {
-        if (category != null) {
-          widget.repository.update(
-            category.copyWith(name: result['name']!, color: result['color']!),
-          );
-        } else {
-          widget.repository.add(name: result['name']!, color: result['color']!);
-        }
-      });
+      if (category != null) {
+        await widget.repository.update(
+          category.copyWith(name: result['name']!, color: result['color']!),
+        );
+      } else {
+        await widget.repository.add(
+            name: result['name']!, color: result['color']!);
+      }
+      if (mounted) setState(() {});
     }
   }
 
@@ -53,10 +53,9 @@ class _CategoryListViewState extends State<CategoryListView> {
                       return CategoryTile(
                         category: category,
                         onTap: () => _showEditSheet(category: category),
-                        onDelete: () {
-                          setState(() {
-                            widget.repository.delete(category.id);
-                          });
+                        onDelete: () async {
+                          await widget.repository.delete(category.id);
+                          if (mounted) setState(() {});
                         },
                       );
                     },

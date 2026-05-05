@@ -91,6 +91,26 @@ class CloudSyncService {
     dailyRecordRepo.setUid(uid);
   }
 
+  /// cloud 에 어떤 데이터든 있는지 (마이그레이션 판단용).
+  /// routines 1개만 가져와서 빠르게 판정.
+  Future<bool> hasAnyData(String uid) async {
+    try {
+      final snap = await _userColl(uid, 'routines').limit(1).get();
+      if (snap.docs.isNotEmpty) return true;
+      final snap2 = await _userColl(uid, 'tasks').limit(1).get();
+      return snap2.docs.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// 로컬 Hive 에 데이터가 있는지.
+  bool hasAnyLocal() {
+    return routineRepo.getAllIncludingDeleted().isNotEmpty ||
+        taskRepo.getAll().isNotEmpty ||
+        categoryRepo.getAll().isNotEmpty;
+  }
+
   /// 첫 로그인 시 기존 로컬 데이터를 클라우드로 올림.
   /// (마이그레이션용 — 이미 cloud 에 데이터 있으면 호출하지 않는 게 좋음)
   /// 결과로 각 컬렉션 push 개수 + 에러 반환 (디버깅 용).

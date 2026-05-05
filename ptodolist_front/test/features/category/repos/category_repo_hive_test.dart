@@ -28,12 +28,12 @@ void main() {
   });
 
   group('CategoryRepository (Hive)', () {
-    test('빈 박스에서 빈 리스트를 반환한다', () {
+    test('빈 박스에서 빈 리스트를 반환한다', () async {
       expect(repo.getAll(), isEmpty);
     });
 
-    test('카테고리를 추가하고 조회한다', () {
-      final id = repo.add(name: '운동', color: '#EF4444');
+    test('카테고리를 추가하고 조회한다', () async {
+      final id = await repo.add(name: '운동', color: '#EF4444');
 
       final all = repo.getAll();
       expect(all.length, 1);
@@ -44,32 +44,32 @@ void main() {
       expect(found!.color, '#EF4444');
     });
 
-    test('카테고리를 수정한다', () {
-      final id = repo.add(name: '운동', color: '#EF4444');
+    test('카테고리를 수정한다', () async {
+      final id = await repo.add(name: '운동', color: '#EF4444');
       final original = repo.getById(id)!;
-      repo.update(original.copyWith(name: '헬스'));
+      await repo.update(original.copyWith(name: '헬스'));
 
       expect(repo.getById(id)!.name, '헬스');
     });
 
-    test('카테고리를 삭제한다', () {
-      final id = repo.add(name: '운동', color: '#EF4444');
-      final result = repo.delete(id);
+    test('카테고리를 삭제한다', () async {
+      final id = await repo.add(name: '운동', color: '#EF4444');
+      final result = await repo.delete(id);
 
       expect(result, true);
       expect(repo.getAll(), isEmpty);
     });
 
-    test('"기타" 카테고리는 삭제할 수 없다', () {
-      final id = repo.add(name: '기타', color: '#8B5CF6');
-      final result = repo.delete(id);
+    test('"기타" 카테고리는 삭제할 수 없다', () async {
+      final id = await repo.add(name: '기타', color: '#8B5CF6');
+      final result = await repo.delete(id);
 
       expect(result, false);
       expect(repo.getAll().length, 1);
     });
 
     test('데이터가 박스에 영속된다', () async {
-      repo.add(name: '공부', color: '#3B82F6');
+      await repo.add(name: '공부', color: '#3B82F6');
 
       // 박스를 닫고 다시 열기
       await box.close();

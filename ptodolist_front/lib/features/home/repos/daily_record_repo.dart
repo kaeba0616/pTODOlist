@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
@@ -35,12 +37,15 @@ class DailyRecordRepository {
           .doc(uid)
           .collection('dailyRecords');
 
-  void _pushCloud(DailyRecord r) {
+  Future<void> _pushCloud(DailyRecord r) async {
     final uid = _uid ?? CurrentUser.uid;
     if (uid == null) return;
-    _cloud(uid).doc(r.date).set(r.toMap()).catchError((Object e, StackTrace st) {
-      debugPrint('dailyRecord push failed: $e');
-    });
+    try {
+      await _cloud(uid).doc(r.date).set(r.toMap());
+    } catch (e, st) {
+      debugPrint('dailyRecord push FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
   Future<void> replaceAllLocal(List<DailyRecord> records) async {
@@ -148,6 +153,7 @@ class DailyRecordRepository {
     } else {
       _box!.put(key, record);
     }
-    _pushCloud(record);
+    // fire-and-forget: 토글은 잦아서 await 안 함. 에러는 _pushCloud 가 내부 로깅.
+    unawaited(_pushCloud(record));
   }
 }

@@ -34,20 +34,29 @@ class TaskRepository {
           .doc(uid)
           .collection('tasks');
 
-  void _pushCloud(AdditionalTask t) {
+  Future<void> _pushCloud(AdditionalTask t) async {
     final uid = _uid ?? CurrentUser.uid;
-    if (uid == null) return;
-    _cloud(uid).doc(t.id).set(t.toMap()).catchError((Object e, StackTrace st) {
-      debugPrint('task push failed: $e');
-    });
+    if (uid == null) {
+      debugPrint('task push skipped: no uid');
+      return;
+    }
+    try {
+      await _cloud(uid).doc(t.id).set(t.toMap());
+    } catch (e, st) {
+      debugPrint('task push FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
-  void _deleteCloud(String id) {
+  Future<void> _deleteCloud(String id) async {
     final uid = _uid ?? CurrentUser.uid;
     if (uid == null) return;
-    _cloud(uid).doc(id).delete().catchError((Object e, StackTrace st) {
-      debugPrint('task delete failed: $e');
-    });
+    try {
+      await _cloud(uid).doc(id).delete();
+    } catch (e, st) {
+      debugPrint('task delete FAILED: $e\n$st');
+      rethrow;
+    }
   }
 
   static const _uuid = Uuid();
@@ -109,7 +118,7 @@ class TaskRepository {
       await _box!.put(task.id, task);
       await _box!.flush();
     }
-    _pushCloud(task);
+    await _pushCloud(task);
   }
 
   Future<String> add({
@@ -134,7 +143,7 @@ class TaskRepository {
       await _box!.put(id, task);
       await _box!.flush();
     }
-    _pushCloud(task);
+    await _pushCloud(task);
     return id;
   }
 
@@ -157,7 +166,7 @@ class TaskRepository {
       await _box!.put(id, updated);
       await _box!.flush();
     }
-    _pushCloud(updated);
+    await _pushCloud(updated);
   }
 
   Future<void> toggleSubtask(String taskId, int index) async {
@@ -186,19 +195,19 @@ class TaskRepository {
       await _box!.put(taskId, updated);
       await _box!.flush();
     }
-    _pushCloud(updated);
+    await _pushCloud(updated);
   }
 
-  bool delete(String id) {
+  Future<bool> delete(String id) async {
     if (useMock) {
       final len = _mockData.length;
       _mockData.removeWhere((t) => t.id == id);
-      _deleteCloud(id);
+      await _deleteCloud(id);
       return _mockData.length < len;
     }
     if (_box!.containsKey(id)) {
-      _box!.delete(id);
-      _deleteCloud(id);
+      await _box!.delete(id);
+      await _deleteCloud(id);
       return true;
     }
     return false;
@@ -216,23 +225,27 @@ class TaskRepository {
     await _box!.flush();
   }
 
-  void reassignCategory(String oldCategoryId, String newCategoryId) {
+  Future<void> reassignCategory(
+      String oldCategoryId, String newCategoryId) async {
     if (useMock) {
-      _mockData = _mockData.map((t) {
+      final newList = <AdditionalTask>[];
+      for (final t in _mockData) {
         if (t.categoryId == oldCategoryId) {
           final updated = t.copyWith(categoryId: newCategoryId);
-          _pushCloud(updated);
-          return updated;
+          await _pushCloud(updated);
+          newList.add(updated);
+        } else {
+          newList.add(t);
         }
-        return t;
-      }).toList();
+      }
+      _mockData = newList;
     } else {
-      for (final task in _box!.values.where(
-        (t) => t.categoryId == oldCategoryId,
-      )) {
+      for (final task in _box!.values
+          .where((t) => t.categoryId == oldCategoryId)
+          .toList()) {
         final updated = task.copyWith(categoryId: newCategoryId);
-        _box!.put(task.id, updated);
-        _pushCloud(updated);
+        await _box!.put(task.id, updated);
+        await _pushCloud(updated);
       }
     }
   }
