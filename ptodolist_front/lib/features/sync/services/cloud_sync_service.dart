@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' hide Category;
+import 'package:ptodolist/core/sync/app_sync_tick.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
 import 'package:ptodolist/features/home/models/daily_record.dart';
@@ -65,6 +66,7 @@ class CloudSyncService {
       await dailyRecordRepo.replaceAllLocal(records);
       debugPrint('CloudSync.pullAll($uid): r=${routines.length}, '
           'c=${categories.length}, t=${tasks.length}, dr=${records.length}');
+      notifySyncCompleted();
     } catch (e, st) {
       debugPrint('CloudSync.pullAll failed: $e\n$st');
       rethrow;
@@ -81,6 +83,7 @@ class CloudSyncService {
     await categoryRepo.replaceAllLocal(const []);
     await taskRepo.replaceAllLocal(const []);
     await dailyRecordRepo.replaceAllLocal(const []);
+    notifySyncCompleted();
   }
 
   /// 모든 repo 에 새 uid 주입 (로그인 후 push-through 작동시키려면 필요).
@@ -138,6 +141,7 @@ class CloudSyncService {
         d++;
       }
       await batch.commit();
+      notifySyncCompleted();
       return ForcePushResult(
           routines: r, categories: c, tasks: t, dailyRecords: d);
     } catch (e, st) {

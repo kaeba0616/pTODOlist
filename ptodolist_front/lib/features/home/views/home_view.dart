@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:ptodolist/core/sync/app_sync_tick.dart';
 import 'package:ptodolist/features/social/providers/social_providers.dart';
 import 'package:ptodolist/features/social/services/daily_share_sync_service.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
@@ -56,6 +57,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (mounted) setState(() {});
     });
     _initDailyRecord();
+    appSyncTick.addListener(_onCloudSync);
     // 앱 시작 시 한 번 sync. 에러일 때만 SnackBar (성공 시 조용함)
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final result = await ref.read(dailyShareSyncServiceProvider).syncToday(
@@ -65,6 +67,11 @@ class _HomeViewState extends ConsumerState<HomeView>
       if (!mounted) return;
       if (result is SyncedFailed) _showSyncSnack(result);
     });
+  }
+
+  void _onCloudSync() {
+    if (!mounted) return;
+    setState(() => _initDailyRecord());
   }
 
   void _showSyncSnack(SyncResult result) {
@@ -85,6 +92,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   @override
   void dispose() {
+    appSyncTick.removeListener(_onCloudSync);
     _tabController.dispose();
     super.dispose();
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ptodolist/core/sync/app_sync_tick.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
@@ -35,6 +36,22 @@ class StatsView extends StatefulWidget {
 class _StatsViewState extends State<StatsView> {
   StatsPeriod _period = StatsPeriod.daily;
   static final _dateFmt = DateFormat('yyyy-MM-dd');
+
+  @override
+  void initState() {
+    super.initState();
+    appSyncTick.addListener(_onCloudSync);
+  }
+
+  @override
+  void dispose() {
+    appSyncTick.removeListener(_onCloudSync);
+    super.dispose();
+  }
+
+  void _onCloudSync() {
+    if (mounted) setState(() {});
+  }
 
   bool get _hasRepos =>
       widget.dailyRecordRepo != null &&

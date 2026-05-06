@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:ptodolist/core/sync/app_sync_tick.dart';
 import 'package:ptodolist/features/calendar/widgets/calendar_grid.dart';
 import 'package:ptodolist/features/calendar/widgets/day_detail_sheet.dart';
 import 'package:ptodolist/features/calendar/widgets/streak_banner.dart';
@@ -36,6 +37,17 @@ class _CalendarViewState extends State<CalendarView> {
     super.initState();
     final now = DateTime.now();
     _displayedMonth = DateTime(now.year, now.month);
+    appSyncTick.addListener(_onCloudSync);
+  }
+
+  @override
+  void dispose() {
+    appSyncTick.removeListener(_onCloudSync);
+    super.dispose();
+  }
+
+  void _onCloudSync() {
+    if (mounted) setState(() {});
   }
 
   Map<String, double> _getCompletionRates() {

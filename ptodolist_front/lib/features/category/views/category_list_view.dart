@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ptodolist/core/sync/app_sync_tick.dart';
 import 'package:ptodolist/features/category/models/category.dart';
 import 'package:ptodolist/features/category/repos/category_repo.dart';
 import 'package:ptodolist/features/category/views/category_edit_view.dart';
@@ -15,6 +16,22 @@ class CategoryListView extends StatefulWidget {
 
 class _CategoryListViewState extends State<CategoryListView> {
   List<Category> get _categories => widget.repository.getAll();
+
+  @override
+  void initState() {
+    super.initState();
+    appSyncTick.addListener(_onCloudSync);
+  }
+
+  @override
+  void dispose() {
+    appSyncTick.removeListener(_onCloudSync);
+    super.dispose();
+  }
+
+  void _onCloudSync() {
+    if (mounted) setState(() {});
+  }
 
   Future<void> _showEditSheet({Category? category}) async {
     final result = await showModalBottomSheet<Map<String, String>>(
