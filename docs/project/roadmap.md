@@ -9,6 +9,7 @@
 | Phase 3 | Polish | 설정, 데이터 관리, 테마 | F8 | `[status: done]` |
 | Phase 4 | Enhancement | 요일별 루틴, 연속 달성, 마감일 | F9~F12 | `[status: done]` |
 | Phase 5 | Visualization & Reach | 캘린더 뷰, 홈 위젯 | F13~F14 | `[status: done]` |
+| Phase 6 | Cloud & Social | 클라우드 동기화, 친구 공유 | F15~F16 | `[status: done]` |
 
 ---
 
@@ -84,6 +85,20 @@
 | F14 | 홈 위젯 (Android) | Phase 4 완료 | `[status: completed]` |
 
 **마일스톤**: 월별 캘린더 히트맵 + Android 홈 위젯에서 루틴 체크
+
+---
+
+## Phase 6: Cloud & Social `[status: done]`
+
+**목표**: Google 로그인 + 클라우드 동기화로 멀티 디바이스 지원 + 친구 공유로 소셜 모티베이션
+
+**Features**:
+| ID | 기능 | 의존성 | 상태 |
+|---|---|---|---|
+| F15 | 클라우드 계정 + 데이터 동기화 | Phase 5 완료 | `[status: completed]` |
+| F16 | 친구 공유 | F15 | `[status: completed]` |
+
+**마일스톤**: Google 로그인 → 멀티 디바이스 동기화 → 친구 추가 → 친구 루틴/진행률 확인
 
 ---
 
