@@ -9,9 +9,10 @@ Claude Code는 이 파일을 이 레포지토리의 **헌법(constitution)** 으
 ## 0. 프로젝트 컨텍스트
 
 - **프로젝트 이름**: pTODOlist
-- **한 줄 소개**: 매일 반복하는 루틴과 추가 할 일의 완료 여부를 추적하는 로컬 전용 모바일 앱
+- **한 줄 소개**: 혼자서도 친구와 함께도, 매일의 습관을 만드는 올인원 모바일 앱
 - **주요 유저/고객**:
   - 매일 루틴을 관리하고 달성률을 확인하고 싶은 개인 사용자
+  - 친구와 가볍게 동기부여를 주고받고 싶은 사용자
 - **기술 스택**:
   - Frontend: Flutter (latest stable) + Riverpod + go_router
   - Local DB: Hive + hive_flutter

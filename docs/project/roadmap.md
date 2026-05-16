@@ -10,6 +10,7 @@
 | Phase 4 | Enhancement | 요일별 루틴, 연속 달성, 마감일 | F9~F12 | `[status: done]` |
 | Phase 5 | Visualization & Reach | 캘린더 뷰, 홈 위젯 | F13~F14 | `[status: done]` |
 | Phase 6 | Cloud & Social | 클라우드 동기화, 친구 공유 | F15~F16 | `[status: done]` |
+| Phase 7 | Strategic Re-alignment | 비전·포지셔닝·BM 재정렬 (문서만) | — | `[status: done]` |
 
 ---
 
@@ -99,6 +100,25 @@
 | F16 | 친구 공유 | F15 | `[status: completed]` |
 
 **마일스톤**: Google 로그인 → 멀티 디바이스 동기화 → 친구 추가 → 친구 루틴/진행률 확인
+
+---
+
+## Phase 7: Strategic Re-alignment `[status: done]`
+
+**목표**: Phase 1~6 의 코드 현실을 비즈니스 문서에 반영, "올인원 습관 트래커" 톤으로 비전·포지셔닝·BM 재정렬
+
+**유형**: 순수 전략 Phase (코드 변경 없음, 문서만)
+
+**Workstreams**:
+| # | 파일 | 변경 깊이 |
+|---|---|---|
+| 1 | `docs/business/vision-onepager.md` | 대규모 |
+| 2 | `docs/business/business-plan.md` | 대규모 |
+| 3 | `docs/business/positioning-bm.md` | 대규모 |
+| 4 | `docs/project/roadmap.md` | 소 |
+| 5 | `CLAUDE.md` | 극소 |
+
+**마일스톤**: 6개 파일 모두 "올인원" 톤으로 일관성 확보, WON'T/DONE 재분류, 새 페르소나·경쟁표·BM 가수안 정리
 
 ---
 
