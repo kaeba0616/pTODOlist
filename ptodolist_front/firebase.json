@@ -1,0 +1,20 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "functions": {
+    "source": "functions",
+    "ignore": [
+      "node_modules",
+      "*.test.js"
+    ]
+  },
+  "emulators": {
+    "firestore": {
+      "port": 8425
+    },
+    "ui": {
+      "enabled": false
+    }
+  }
+}

@@ -48,3 +48,11 @@ app.*.map.json
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
+
+# Firebase local tooling
+functions/node_modules/
+firestore-tests/node_modules/
+firestore-tests/package-lock.json
+functions/package-lock.json
+firebase-debug.log
+firestore-debug.log

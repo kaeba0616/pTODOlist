@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +11,9 @@ import 'package:home_widget/home_widget.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:ptodolist/core/auth/current_user.dart';
+import 'package:ptodolist/core/push/push_token_registry.dart';
+import 'package:ptodolist/features/push/repos/push_token_repo.dart';
+import 'package:ptodolist/features/push/services/push_token_service.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/router/app_router.dart';
 import 'package:ptodolist/core/db/database_service.dart';
@@ -39,10 +46,20 @@ void main() async {
     await NotificationService.init();
 
     // Firebase 초기화 (Android: google-services.json 자동 로드)
+    var firebaseReady = false;
     try {
       await Firebase.initializeApp();
+      firebaseReady = true;
     } catch (e) {
       debugPrint('Firebase init failed (offline?): $e');
+    }
+
+    if (firebaseReady) {
+      pushTokenServiceInstance = PushTokenService(
+        messaging: FirebaseMessaging.instance,
+        repo: PushTokenRepository(),
+        platform: defaultTargetPlatform.name.toLowerCase(),
+      );
     }
 
     // Home Widget 초기화
@@ -89,6 +106,7 @@ void _wireAuthListener() {
     if (newUid == lastUid) {
       // 같은 사용자 재로그인 (또는 시작 시 같은 uid) → push-through 활성화만
       CurrentUser.uid = newUid;
+      if (newUid != null) _registerPushToken(newUid);
       return;
     }
     if (newUid == null) {
@@ -122,8 +140,18 @@ void _wireAuthListener() {
       }
       lastUid = newUid;
       await settingsBox.put('lastSignedInUid', newUid);
+      _registerPushToken(newUid);
     }
   });
+}
+
+/// 로그인 확인 후 FCM 토큰 등록 (실패해도 앱 동작에 영향 없음).
+void _registerPushToken(String uid) {
+  final svc = pushTokenServiceInstance;
+  if (svc == null) return;
+  unawaited(svc.registerForUser(uid).catchError((Object e) {
+    debugPrint('[push] register failed: $e');
+  }));
 }
 
 @pragma('vm:entry-point')

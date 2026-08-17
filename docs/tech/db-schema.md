@@ -121,3 +121,32 @@
 - `retentionMonths` 설정값에 따라 오래된 `dailyRecords` 삭제
 - 기본값: 6개월 (180일 이상 된 레코드 삭제)
 - `additionalTasks`에서 완료 + targetDate가 보관기간 초과한 항목도 삭제
+
+---
+
+## 5. Firestore 스키마 (Phase 6+ 클라우드 동기화 / 친구 / 푸시)
+
+로컬 Hive 가 1차 저장소이고, 로그인 시 Firestore 와 cloud-first 동기화한다.
+접근 제어는 `ptodolist_front/firestore.rules` 가 단일 진실이다 (강화 규칙 + `firestore-tests/` 에뮬레이터 테스트).
+
+```
+users/{uid}                      # 프로필: nickname, friendCode, publicMode('friends'|'off')
+  ├─ routines/{rid}              # 친구 read 가능 (publicMode == 'friends' 일 때만)
+  ├─ categories/{cid}            # 〃
+  ├─ dailyRecords/{yyyy-MM-dd}   # 〃
+  ├─ tasks/{tid}                 # 본인 전용
+  └─ fcmTokens/{token}           # 푸시 토큰. 문서ID=토큰. {platform, updatedAt}
+                                 # write 본인만 / client read 본인만 (Functions 는 Admin SDK)
+
+friendCodes/{code}               # 코드 → uid 역방향 인덱스. {uid, createdAt}
+friendships/{uidA_uidB}          # 정렬된 pairId. {members[2], acceptedBy, createdAt}
+                                 # create 는 "요청 받은 수락자"만 (acceptedBy == auth.uid
+                                 # && 상대의 요청이 내 수신함에 존재). update 불가.
+friendRequests/{toUid}/incoming/{fromUid}   # {fromUid, fromNickname, fromCode, createdAt}
+dailyShares/{shareId}            # {uid, ...} 오늘 달성 공유 카드. 친구+publicMode 검사
+```
+
+### 푸시 알림 (Cloud Functions, `ptodolist_front/functions/`)
+- `onFriendRequestCreated`: friendRequests/*/incoming/* 생성 → 받은 사람 기기로 FCM
+- `onFriendshipCreated`: friendship 생성 → `acceptedBy` 가 아닌 멤버(요청 보낸 사람)에게 FCM
+- 발송 실패한 무효 토큰은 즉시 삭제. 리전 asia-northeast3, Blaze 플랜 필요.

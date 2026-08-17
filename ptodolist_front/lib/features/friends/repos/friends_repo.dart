@@ -55,6 +55,9 @@ class FriendsRepository {
     final members = [myUid, fromUid]..sort();
     await _friendships.doc(pairId).set({
       'members': members,
+      // 보안 규칙: acceptedBy == 요청을 받은 수락자 본인이어야 생성 허용.
+      // Cloud Functions 는 이 필드로 "수락됨" 푸시 대상(요청 보낸 쪽)을 찾는다.
+      'acceptedBy': myUid,
       'createdAt': DateTime.now().toIso8601String(),
     });
     await _incoming(myUid).doc(fromUid).delete();
