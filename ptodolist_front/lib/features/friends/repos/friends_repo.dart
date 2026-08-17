@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ptodolist/features/friends/models/friendship.dart';
 import 'package:ptodolist/features/profile/models/user_profile.dart';
+import 'package:ptodolist/features/push/services/push_relay_client.dart';
 
 /// 친구 요청/수락/거절/삭제 + 친구 목록 조회.
 class FriendsRepository {
   final FirebaseFirestore _firestore;
+  final PushRelayClient? _relay;
 
-  FriendsRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  FriendsRepository({FirebaseFirestore? firestore, PushRelayClient? relay})
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _relay = relay;
 
   CollectionReference<Map<String, dynamic>> get _friendships =>
       _firestore.collection('friendships');
@@ -36,6 +41,9 @@ class FriendsRepository {
       'createdAt': DateTime.now().toIso8601String(),
     };
     await _incoming(toUid).doc(fromProfile.uid).set(req);
+    // 푸시는 best-effort — 저장 성공 후 fire-and-forget
+    final relay = _relay;
+    if (relay != null) unawaited(relay.notifyFriendRequest(toUid: toUid));
   }
 
   /// 받은 요청 목록 (실시간).
@@ -61,6 +69,9 @@ class FriendsRepository {
       'createdAt': DateTime.now().toIso8601String(),
     });
     await _incoming(myUid).doc(fromUid).delete();
+    // 수락 푸시 대상 = 원래 요청을 보낸 쪽
+    final relay = _relay;
+    if (relay != null) unawaited(relay.notifyFriendAccepted(toUid: fromUid));
   }
 
   /// 요청 거절 — 받은 요청만 삭제.

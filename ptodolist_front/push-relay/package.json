@@ -1,0 +1,14 @@
+{
+  "name": "ptodolist-push-relay",
+  "description": "친구 알림 FCM 발송 릴레이 — Cloudflare Workers (무료 티어)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.14.1"
+  }
+}

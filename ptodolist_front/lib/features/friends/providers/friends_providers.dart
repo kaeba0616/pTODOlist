@@ -2,8 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ptodolist/features/auth/providers/auth_providers.dart';
 import 'package:ptodolist/features/friends/models/friendship.dart';
 import 'package:ptodolist/features/friends/repos/friends_repo.dart';
+import 'package:ptodolist/features/push/providers/push_providers.dart';
 
-final friendsRepoProvider = Provider<FriendsRepository>((ref) => FriendsRepository());
+final friendsRepoProvider = Provider<FriendsRepository>(
+  (ref) => FriendsRepository(relay: ref.watch(pushRelayClientProvider)),
+);
 
 /// 받은 친구 요청 (로그인 필요).
 final incomingRequestsProvider = StreamProvider<List<FriendRequest>>((ref) {

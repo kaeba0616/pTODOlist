@@ -1,7 +1,11 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:ptodolist/features/friends/repos/friends_repo.dart';
 import 'package:ptodolist/features/profile/models/user_profile.dart';
+import 'package:ptodolist/features/push/services/push_relay_client.dart';
+
+class _MockRelay extends Mock implements PushRelayClient {}
 
 UserProfile _profile(String uid) => UserProfile(
       uid: uid,
@@ -14,11 +18,17 @@ UserProfile _profile(String uid) => UserProfile(
 
 void main() {
   late FakeFirebaseFirestore firestore;
+  late _MockRelay relay;
   late FriendsRepository repo;
 
   setUp(() {
     firestore = FakeFirebaseFirestore();
-    repo = FriendsRepository(firestore: firestore);
+    relay = _MockRelay();
+    when(() => relay.notifyFriendRequest(toUid: any(named: 'toUid')))
+        .thenAnswer((_) async {});
+    when(() => relay.notifyFriendAccepted(toUid: any(named: 'toUid')))
+        .thenAnswer((_) async {});
+    repo = FriendsRepository(firestore: firestore, relay: relay);
   });
 
   test('sendRequest 는 받은 사람 수신함에 닉네임/코드를 비정규화해 저장한다', () async {
@@ -61,6 +71,34 @@ void main() {
         .doc('alice')
         .get();
     expect(req.exists, isFalse);
+  });
+
+  test('sendRequest 성공 후 릴레이에 friend-request 알림을 요청한다', () async {
+    await repo.sendRequest(toUid: 'bob', fromProfile: _profile('alice'));
+
+    verify(() => relay.notifyFriendRequest(toUid: 'bob')).called(1);
+  });
+
+  test('accept 성공 후 릴레이에 friend-accepted 알림을 요청한다 (대상=요청 보낸 쪽)', () async {
+    await firestore
+        .collection('friendRequests')
+        .doc('bob')
+        .collection('incoming')
+        .doc('alice')
+        .set({'fromUid': 'alice'});
+
+    await repo.accept(myUid: 'bob', fromUid: 'alice');
+
+    verify(() => relay.notifyFriendAccepted(toUid: 'alice')).called(1);
+  });
+
+  test('릴레이 미주입(mock 모드)이어도 sendRequest/accept 는 동작한다', () async {
+    final bare = FriendsRepository(firestore: firestore);
+    await bare.sendRequest(toUid: 'bob', fromProfile: _profile('alice'));
+    await bare.accept(myUid: 'bob', fromUid: 'alice');
+
+    final pair = await firestore.collection('friendships').doc('alice_bob').get();
+    expect(pair.exists, isTrue);
   });
 
   test('removeFriend 는 friendship 문서를 삭제한다', () async {

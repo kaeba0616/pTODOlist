@@ -146,7 +146,15 @@ friendRequests/{toUid}/incoming/{fromUid}   # {fromUid, fromNickname, fromCode, 
 dailyShares/{shareId}            # {uid, ...} 오늘 달성 공유 카드. 친구+publicMode 검사
 ```
 
-### 푸시 알림 (Cloud Functions, `ptodolist_front/functions/`)
-- `onFriendRequestCreated`: friendRequests/*/incoming/* 생성 → 받은 사람 기기로 FCM
-- `onFriendshipCreated`: friendship 생성 → `acceptedBy` 가 아닌 멤버(요청 보낸 사람)에게 FCM
-- 발송 실패한 무효 토큰은 즉시 삭제. 리전 asia-northeast3, Blaze 플랜 필요.
+### 푸시 알림 (Cloudflare Worker 릴레이, `ptodolist_front/push-relay/`)
+Firebase 는 Spark(무료) 플랜 유지 — Cloud Functions 대신 무료 티어 Worker 가 FCM v1 을 호출한다.
+(Blaze 전환 시 쓸 수 있는 Cloud Functions 구현은 git 히스토리 `ec74cb1` 의 `functions/` 참조)
+
+- 앱이 친구 요청 저장/수락 직후 Worker 를 호출 (`PushRelayClient`, best-effort):
+  - `POST /notify/friend-request {toUid}` → 받은 사람 기기로 FCM
+  - `POST /notify/friend-accepted {toUid}` → 요청 보냈던 사람 기기로 FCM
+- Worker 검증: ① 호출자 Firebase ID 토큰(RS256/JWKS) ② Firestore 에 해당
+  요청/수락 문서 실존 확인 (`acceptedBy` == 호출자) — 위조 호출로는 발송 불가
+- 발송 실패한 무효 토큰은 즉시 삭제
+- 앱 빌드 시 `--dart-define=PUSH_RELAY_URL=https://...workers.dev` 로 활성화 (미설정 = 푸시 비활성)
+- 시크릿: `SERVICE_ACCOUNT_JSON` (wrangler secret), 변수: `FIREBASE_PROJECT_ID`

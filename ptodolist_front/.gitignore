@@ -50,9 +50,9 @@ ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
 
 # Firebase local tooling
-functions/node_modules/
+push-relay/node_modules/
 firestore-tests/node_modules/
 firestore-tests/package-lock.json
-functions/package-lock.json
+push-relay/package-lock.json
 firebase-debug.log
 firestore-debug.log
