@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ptodolist/core/sync/app_sync_tick.dart';
-import 'package:ptodolist/features/social/providers/social_providers.dart';
-import 'package:ptodolist/features/social/services/daily_share_sync_service.dart';
 import 'package:ptodolist/core/theme/app_theme.dart';
 import 'package:ptodolist/core/utils/color_utils.dart';
 import 'package:ptodolist/core/utils/streak_calculator.dart';
@@ -58,36 +56,11 @@ class _HomeViewState extends ConsumerState<HomeView>
     });
     _initDailyRecord();
     appSyncTick.addListener(_onCloudSync);
-    // 앱 시작 시 한 번 sync. 에러일 때만 SnackBar (성공 시 조용함)
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final result = await ref.read(dailyShareSyncServiceProvider).syncToday(
-            record: _dailyRecord,
-            activeRoutines: _activeRoutines,
-          );
-      if (!mounted) return;
-      if (result is SyncedFailed) _showSyncSnack(result);
-    });
   }
 
   void _onCloudSync() {
     if (!mounted) return;
     setState(() => _initDailyRecord());
-  }
-
-  void _showSyncSnack(SyncResult result) {
-    final msg = switch (result) {
-      SyncedOk(:final docId) => '✓ 동기화: $docId',
-      SyncedSkipped(:final reason) => '⚠ 동기화 스킵: $reason',
-      SyncedDeleted() => '🚫 비공개 모드 — 데이터 삭제',
-      SyncedFailed(:final error) => '✗ 동기화 실패: $error',
-    };
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(msg),
-        duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
-      ));
   }
 
   @override
@@ -175,23 +148,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   void _toggleRoutine(String routineId) {
     setState(() {
       _dailyRecord = _dailyRecord.toggleRoutine(routineId);
-      _saveDailyRecordAndSync();
+      widget.dailyRecordRepo?.save(_dailyRecord);
     });
     widget.homeWidgetService?.updateWidgetData();
-  }
-
-  void _saveDailyRecordAndSync() {
-    widget.dailyRecordRepo?.save(_dailyRecord);
-    final activeRoutines =
-        widget.routineRepo.getAll().where((r) => r.isActive).toList();
-    // fire-and-forget — SnackBar 로 결과 노출 (디버깅 단계)
-    () async {
-      final result = await ref.read(dailyShareSyncServiceProvider).syncToday(
-            record: _dailyRecord,
-            activeRoutines: activeRoutines,
-          );
-      if (mounted) _showSyncSnack(result);
-    }();
   }
 
   Future<void> _toggleTask(String taskId) async {
@@ -225,7 +184,7 @@ class _HomeViewState extends ConsumerState<HomeView>
         );
         completions.remove(freshRoutine.id);
         _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
-        _saveDailyRecordAndSync();
+        widget.dailyRecordRepo?.save(_dailyRecord);
       });
       widget.homeWidgetService?.updateWidgetData();
       return;
@@ -251,7 +210,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           );
           completions.remove(updated.id);
           _dailyRecord = _dailyRecord.copyWith(routineCompletions: completions);
-          _saveDailyRecordAndSync();
+          widget.dailyRecordRepo?.save(_dailyRecord);
         }
       });
     }

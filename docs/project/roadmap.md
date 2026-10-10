@@ -11,6 +11,7 @@
 | Phase 5 | Visualization & Reach | 캘린더 뷰, 홈 위젯 | F13~F14 | `[status: done]` |
 | Phase 6 | Cloud & Social | 클라우드 동기화, 친구 공유 | F15~F16 | `[status: done]` |
 | Phase 7 | Strategic Re-alignment | 비전·포지셔닝·BM 재정렬 (문서만) | — | `[status: done]` |
+| Phase 8 | Play Store Release | 친구 기능 제거, 개인+클라우드 구성으로 첫 배포 | F17 | `[status: in-progress]` |
 
 ---
 
@@ -119,6 +120,21 @@
 | 5 | `CLAUDE.md` | 극소 |
 
 **마일스톤**: 6개 파일 모두 "올인원" 톤으로 일관성 확보, WON'T/DONE 재분류, 새 페르소나·경쟁표·BM 가수안 정리
+
+---
+
+## Phase 8: Play Store Release `[status: in-progress]`
+
+**목표**: 친구 공유(F16)·FCM 푸시를 코드에서 제거하고, "개인 사용 + Google 로그인 클라우드 백업" 구성으로
+**하루나무** 라는 이름으로 Google Play 첫 배포
+
+**상세 계획**: [`phases/phase8-plan.md`](phases/phase8-plan.md)
+
+| ID | 기능 | 의존성 | 상태 |
+|---|---|---|---|
+| F17 | 친구 기능 제거 + Play Store 배포 준비 | Phase 6 완료 | `[status: in-progress]` |
+
+**마일스톤**: 코드 제거 + 규칙 축소 → 서명된 AAB 빌드 → 내부 테스트 트랙 → 프로덕션
 
 ---
 

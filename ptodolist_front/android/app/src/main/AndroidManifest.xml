@@ -2,7 +2,7 @@
     <!-- Android 13+ 알림 표시 권한 (FCM 푸시 + 로컬 알림) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="ptodolist"
+        android:label="하루나무"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"

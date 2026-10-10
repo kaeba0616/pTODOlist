@@ -18,7 +18,6 @@ class ProfileEditView extends ConsumerStatefulWidget {
 
 class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
   late final TextEditingController _nicknameController;
-  PublicMode _publicMode = PublicMode.friends;
   bool _busy = false;
   String? _error;
   bool _initialized = false;
@@ -39,7 +38,6 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
     if (_initialized) return;
     _initialized = true;
     _nicknameController.text = profile?.nickname ?? user.displayName ?? '';
-    _publicMode = profile?.publicMode ?? PublicMode.friends;
   }
 
   Future<void> _save() async {
@@ -60,8 +58,6 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
       final profile = UserProfile(
         uid: user.uid,
         nickname: nickname,
-        friendCode: existing?.friendCode ?? '', // 비어있으면 repo 가 자동 발급
-        publicMode: _publicMode,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       );
@@ -106,7 +102,7 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '닉네임을 정하면 친구 코드가 발급되고, 친구만 내 데이터를 볼 수 있어요.',
+                  '닉네임을 정하면 루틴과 기록이 내 계정에 안전하게 백업돼요.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -123,28 +119,9 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text('공개 범위', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              ...PublicMode.values.map((mode) => RadioListTile<PublicMode>(
-                    value: mode,
-                    groupValue: _publicMode,
-                    onChanged: (v) =>
-                        setState(() => _publicMode = v ?? _publicMode),
-                    title: Text(mode.label),
-                    subtitle: Text(
-                      mode.description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  )),
               if (_error != null) ...[
                 const SizedBox(height: 8),
-                Text(
-                  _error!,
-                  style: TextStyle(color: theme.colorScheme.error),
-                ),
+                Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
               ],
               const SizedBox(height: 24),
               FilledButton(

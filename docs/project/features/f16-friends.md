@@ -2,7 +2,7 @@
 
 - **Feature ID**: F16
 - **예상 기간**: 5~7일 (실 소요: ~7일)
-- **상태**: `[status: completed]`
+- **상태**: `[status: completed]` → **Phase 8 에서 코드 제거됨** (복구 기준 커밋 `53f0ce9`, 상세: [`f17-play-release.md`](f17-play-release.md))
 - **의존성**: F15 (클라우드 동기화)
 
 ## 개요

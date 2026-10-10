@@ -11,10 +11,7 @@ import 'package:ptodolist/core/utils/storage_info.dart';
 import 'package:ptodolist/core/auth/current_user.dart';
 import 'package:ptodolist/features/auth/providers/auth_providers.dart';
 import 'package:ptodolist/features/auth/views/login_view.dart';
-import 'package:ptodolist/features/friends/providers/friends_providers.dart';
-import 'package:ptodolist/features/friends/views/friends_view.dart';
 import 'package:ptodolist/main.dart' show cloudSyncService;
-import 'package:ptodolist/features/profile/models/user_profile.dart';
 import 'package:ptodolist/features/profile/providers/profile_providers.dart';
 import 'package:ptodolist/features/profile/views/profile_edit_view.dart';
 import 'package:ptodolist/features/settings/repos/settings_repo.dart';
@@ -66,8 +63,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   String _displayTime(String time) {
     final t = _parseTime(time);
     final period = t.hour < 12 ? '오전' : '오후';
-    final displayHour =
-        t.hour == 0 ? 12 : (t.hour > 12 ? t.hour - 12 : t.hour);
+    final displayHour = t.hour == 0 ? 12 : (t.hour > 12 ? t.hour - 12 : t.hour);
     return '$period $displayHour:${t.minute.toString().padLeft(2, '0')}';
   }
 
@@ -111,8 +107,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.calendar_today, size: 20,
-              color: theme.colorScheme.primary),
+            Icon(
+              Icons.calendar_today,
+              size: 20,
+              color: theme.colorScheme.primary,
+            ),
             const SizedBox(width: 8),
             Text('pTODOlist'),
           ],
@@ -127,8 +126,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
           // Account section
           _buildAccountSection(theme, isDark),
-          const SizedBox(height: 12),
-          _buildFriendsEntry(theme, isDark),
           const SizedBox(height: 24),
 
           // Privacy card
@@ -260,7 +257,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               'pTODOlist v1.0.0',
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.5,
+                ),
               ),
             ),
           ),
@@ -309,16 +308,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final title = user == null
         ? '로그인 안 됨'
         : (profile?.nickname.isNotEmpty == true
-            ? profile!.nickname
-            : (user.displayName ?? '사용자'));
+              ? profile!.nickname
+              : (user.displayName ?? '사용자'));
 
     final subtitle = user == null
-        ? '다른 사람의 루틴을 보려면 로그인 필요'
-        : (profile == null
-            ? '프로필을 설정해주세요'
-            : (profile.friendCode.isNotEmpty
-                ? '코드 ${profile.friendCode} · ${profile.publicMode.label}'
-                : '${profile.publicMode.label} · ${user.email ?? '익명'}'));
+        ? '로그인하면 데이터가 클라우드에 백업돼요'
+        : (profile == null ? '프로필을 설정해주세요' : (user.email ?? '클라우드 동기화 중'));
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -328,7 +323,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         border: isDark
             ? null
             : Border.all(
-                color: AppTheme.outlineVariant.withValues(alpha: 0.05)),
+                color: AppTheme.outlineVariant.withValues(alpha: 0.05),
+              ),
       ),
       child: Row(
         children: [
@@ -363,10 +359,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             ),
           ),
           if (user == null)
-            FilledButton.tonal(
-              onPressed: _openLogin,
-              child: const Text('로그인'),
-            )
+            FilledButton.tonal(onPressed: _openLogin, child: const Text('로그인'))
           else
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
@@ -385,9 +378,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   }
 
   Future<void> _openProfileEdit() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ProfileEditView()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ProfileEditView()));
   }
 
   Widget _buildForceSyncEntry(ThemeData theme, bool isDark) {
@@ -404,16 +397,23 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.cloud_upload_outlined,
-                  size: 28, color: theme.colorScheme.primary),
+              Icon(
+                Icons.cloud_upload_outlined,
+                size: 28,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('강제 동기화 (DEBUG)',
-                        style: GoogleFonts.manrope(
-                            fontSize: 16, fontWeight: FontWeight.w600)),
+                    Text(
+                      '강제 동기화 (DEBUG)',
+                      style: GoogleFonts.manrope(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       '로컬 데이터를 클라우드로 강제 push (디버깅용)',
@@ -425,8 +425,10 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right,
-                  color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),
@@ -452,7 +454,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       _snack('동기화 실패: ${result.error}');
     } else {
       _snack(
-          'R${result.routines} / C${result.categories} / T${result.tasks} / D${result.dailyRecords} push 완료');
+        'R${result.routines} / C${result.categories} / T${result.tasks} / D${result.dailyRecords} push 완료',
+      );
     }
   }
 
@@ -460,89 +463,19 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(msg),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 5),
-      ));
-  }
-
-  Widget _buildFriendsEntry(ThemeData theme, bool isDark) {
-    final user = ref.watch(authStateProvider).valueOrNull;
-    final incoming = ref.watch(incomingRequestsProvider).valueOrNull ?? [];
-    final friends = ref.watch(myFriendshipsProvider).valueOrNull ?? [];
-    final cardColor = isDark
-        ? theme.colorScheme.surfaceContainerHigh
-        : theme.colorScheme.surface;
-
-    return Material(
-      color: cardColor,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: user == null
-            ? null
-            : () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const FriendsView()),
-                ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(Icons.people_outline,
-                  size: 28, color: theme.colorScheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('친구',
-                        style: GoogleFonts.manrope(
-                            fontSize: 16, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    Text(
-                      user == null
-                          ? '로그인 후 사용 가능'
-                          : '${friends.length}명${incoming.isNotEmpty ? ' · 받은 요청 ${incoming.length}' : ''}',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (incoming.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.error,
-                    borderRadius: BorderRadius.circular(9999),
-                  ),
-                  child: Text(
-                    '${incoming.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right,
-                  color: theme.colorScheme.onSurfaceVariant),
-            ],
-          ),
+      ..showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
         ),
-      ),
-    );
+      );
   }
 
   Future<void> _openLogin() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const LoginView()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const LoginView()));
   }
 
   Future<void> _signOut() async {
@@ -553,11 +486,13 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         content: const Text('로그아웃해도 로컬 데이터는 그대로 유지돼요.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('취소')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('로그아웃')),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('로그아웃'),
+          ),
         ],
       ),
     );
@@ -582,8 +517,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.shield_outlined, size: 20,
-                      color: theme.colorScheme.primary),
+                  Icon(
+                    Icons.shield_outlined,
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     '로컬 전용 프라이버시',
@@ -601,8 +539,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   height: 1.5,
-                  color: theme.colorScheme.onPrimaryContainer
-                      .withValues(alpha: 0.9),
+                  color: theme.colorScheme.onPrimaryContainer.withValues(
+                    alpha: 0.9,
+                  ),
                 ),
               ),
             ],
@@ -634,7 +573,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     VoidCallback? onTap,
     bool isDestructive = false,
   }) {
-    final cardColor = (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
+    final cardColor =
+        (theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest);
     final iconBgDefault = theme.colorScheme.surfaceContainerHighest;
 
     return GestureDetector(
@@ -659,7 +599,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               child: Icon(
                 icon,
                 size: 20,
-                color: isDestructive ? AppTheme.error : theme.colorScheme.onSurfaceVariant,
+                color: isDestructive
+                    ? AppTheme.error
+                    : theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(width: 12),
@@ -692,11 +634,17 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             if (trailing != null)
               trailing
             else if (!isDestructive)
-              Icon(Icons.chevron_right, size: 20,
-                  color: theme.colorScheme.outlineVariant)
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: theme.colorScheme.outlineVariant,
+              )
             else
-              Icon(Icons.warning_amber, size: 20,
-                  color: AppTheme.error.withValues(alpha: 0.3)),
+              Icon(
+                Icons.warning_amber,
+                size: 20,
+                color: AppTheme.error.withValues(alpha: 0.3),
+              ),
           ],
         ),
       ),
@@ -704,7 +652,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   }
 
   Widget _buildSystemStats(ThemeData theme, bool isDark) {
-    final cardColor = isDark ? theme.colorScheme.surface : AppTheme.surfaceContainerLow;
+    final cardColor = isDark
+        ? theme.colorScheme.surface
+        : AppTheme.surfaceContainerLow;
     return Row(
       children: [
         Expanded(
@@ -716,7 +666,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               border: isDark
                   ? null
                   : Border.all(
-                      color: AppTheme.outlineVariant.withValues(alpha: 0.05)),
+                      color: AppTheme.outlineVariant.withValues(alpha: 0.05),
+                    ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -739,17 +690,24 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(num,
-                            style: GoogleFonts.manrope(
-                                fontSize: 24, fontWeight: FontWeight.w300)),
+                        Text(
+                          num,
+                          style: GoogleFonts.manrope(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
                         const SizedBox(width: 2),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 3),
-                          child: Text(unit,
-                              style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: theme.colorScheme.onSurfaceVariant)),
+                          child: Text(
+                            unit,
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                         ),
                       ],
                     );
@@ -778,7 +736,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
               border: isDark
                   ? null
                   : Border.all(
-                      color: AppTheme.outlineVariant.withValues(alpha: 0.05)),
+                      color: AppTheme.outlineVariant.withValues(alpha: 0.05),
+                    ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -796,7 +755,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 Text(
                   _themeLabel(_themeMode),
                   style: GoogleFonts.manrope(
-                      fontSize: 18, fontWeight: FontWeight.w500),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -858,8 +819,8 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   m == 'light'
                       ? ThemeMode.light
                       : m == 'dark'
-                          ? ThemeMode.dark
-                          : ThemeMode.system,
+                      ? ThemeMode.dark
+                      : ThemeMode.system,
                 );
                 Navigator.pop(ctx);
               },
@@ -874,14 +835,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final file = await BackupService().writeExportToFile();
-      await Share.shareXFiles(
-        [XFile(file.path, mimeType: 'application/json')],
-        subject: 'pTODOlist 백업',
-      );
+      await Share.shareXFiles([
+        XFile(file.path, mimeType: 'application/json'),
+      ], subject: 'pTODOlist 백업');
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('내보내기 실패: $e')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('내보내기 실패: $e')));
     }
   }
 
@@ -924,9 +882,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
       );
     } catch (e) {
       if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(content: Text('가져오기 실패: $e')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('가져오기 실패: $e')));
     }
   }
 
