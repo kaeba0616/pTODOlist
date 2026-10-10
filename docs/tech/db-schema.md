@@ -124,37 +124,23 @@
 
 ---
 
-## 5. Firestore 스키마 (Phase 6+ 클라우드 동기화 / 친구 / 푸시)
+## 5. Firestore 스키마 (Phase 6+ 클라우드 백업, Phase 8 에서 개인 전용으로 축소)
 
-로컬 Hive 가 1차 저장소이고, 로그인 시 Firestore 와 cloud-first 동기화한다.
-접근 제어는 `ptodolist_front/firestore.rules` 가 단일 진실이다 (강화 규칙 + `firestore-tests/` 에뮬레이터 테스트).
+로컬 Hive 가 캐시이고, 로그인 시 Firestore 와 cloud-first 동기화한다.
+접근 제어는 `ptodolist_front/firestore.rules` 가 단일 진실이다 (`firestore-tests/` 에뮬레이터 테스트 28개).
 
 ```
-users/{uid}                      # 프로필: nickname, friendCode, publicMode('friends'|'off')
-  ├─ routines/{rid}              # 친구 read 가능 (publicMode == 'friends' 일 때만)
-  ├─ categories/{cid}            # 〃
-  ├─ dailyRecords/{yyyy-MM-dd}   # 〃
-  ├─ tasks/{tid}                 # 본인 전용
-  └─ fcmTokens/{token}           # 푸시 토큰. 문서ID=토큰. {platform, updatedAt}
-                                 # write 본인만 / client read 본인만 (Functions 는 Admin SDK)
-
-friendCodes/{code}               # 코드 → uid 역방향 인덱스. {uid, createdAt}
-friendships/{uidA_uidB}          # 정렬된 pairId. {members[2], acceptedBy, createdAt}
-                                 # create 는 "요청 받은 수락자"만 (acceptedBy == auth.uid
-                                 # && 상대의 요청이 내 수신함에 존재). update 불가.
-friendRequests/{toUid}/incoming/{fromUid}   # {fromUid, fromNickname, fromCode, createdAt}
-dailyShares/{shareId}            # {uid, ...} 오늘 달성 공유 카드. 친구+publicMode 검사
+users/{uid}                      # 프로필: nickname, createdAt, updatedAt
+  ├─ routines/{rid}              # 본인 전용
+  ├─ categories/{cid}            # 본인 전용
+  ├─ dailyRecords/{yyyy-MM-dd}   # 본인 전용
+  └─ tasks/{tid}                 # 본인 전용
 ```
 
-### 푸시 알림 (Cloudflare Worker 릴레이, `ptodolist_front/push-relay/`)
-Firebase 는 Spark(무료) 플랜 유지 — Cloud Functions 대신 무료 티어 Worker 가 FCM v1 을 호출한다.
-(Blaze 전환 시 쓸 수 있는 Cloud Functions 구현은 git 히스토리 `ec74cb1` 의 `functions/` 참조)
+- 규칙: `users/{uid}` 와 위 4개 하위 컬렉션은 `request.auth.uid == uid` 일 때만 read/write. 그 외 경로는 전부 deny.
+- 구버전(Phase 6) 앱이 남긴 `friendCode`/`publicMode` 프로필 필드는 `UserProfile.fromMap` 에서 무시한다.
 
-- 앱이 친구 요청 저장/수락 직후 Worker 를 호출 (`PushRelayClient`, best-effort):
-  - `POST /notify/friend-request {toUid}` → 받은 사람 기기로 FCM
-  - `POST /notify/friend-accepted {toUid}` → 요청 보냈던 사람 기기로 FCM
-- Worker 검증: ① 호출자 Firebase ID 토큰(RS256/JWKS) ② Firestore 에 해당
-  요청/수락 문서 실존 확인 (`acceptedBy` == 호출자) — 위조 호출로는 발송 불가
-- 발송 실패한 무효 토큰은 즉시 삭제
-- 앱 빌드 시 `--dart-define=PUSH_RELAY_URL=https://...workers.dev` 로 활성화 (미설정 = 푸시 비활성)
-- 시크릿: `SERVICE_ACCOUNT_JSON` (wrangler secret), 변수: `FIREBASE_PROJECT_ID`
+### 레거시 (Phase 8 에서 제거, 규칙상 접근 불가)
+`users/*/fcmTokens`, `friendCodes`, `friendships`, `friendRequests`, `dailyShares` 컬렉션과
+Cloudflare Worker 푸시 릴레이(`push-relay/`)는 커밋 `53f0ce9` 에 보존되어 있다.
+친구 공유를 재도입할 때 그 커밋의 `firestore.rules` 와 `db-schema.md` 5절을 참고한다.
