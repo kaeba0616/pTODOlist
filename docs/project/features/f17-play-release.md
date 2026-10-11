@@ -33,7 +33,7 @@ F16(친구 공유)과 FCM 푸시 릴레이는 코드에서 제거하고, Firesto
 
 - [x] RED: `firestore-tests/rules.test.mjs` 를 개인 전용 시나리오 28개로 재작성 → 기존 규칙에서 9개 실패 확인
 - [x] GREEN: `firestore.rules` 를 `users/{uid}` + 4개 하위 컬렉션 본인 전용으로 축소 → 28개 통과
-- [ ] 배포: `firebase deploy --only firestore:rules --project ptodolist`
+- [x] 배포: `firebase deploy --only firestore:rules --project ptodolist` (2026-10-11 완료)
 
 ## Step 3: 릴리스 빌드 설정
 

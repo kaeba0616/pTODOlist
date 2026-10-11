@@ -42,6 +42,6 @@ Phase 6 까지 친구 공유(F16)와 FCM 푸시 릴레이까지 구현했지만,
 - [x] friends / social / push 모듈 + push-relay Worker 삭제, 테스트 152개 통과
 - [x] Firestore 규칙 개인 전용 축소 + 규칙 테스트 28개 통과
 - [x] 앱 이름 "하루나무", 릴리스 서명 설정, `flutter build appbundle --release` 성공
-- [ ] Firestore 규칙 배포 (`firebase deploy --only firestore:rules`)
+- [x] Firestore 규칙 배포 (`firebase deploy --only firestore:rules`) — 2026-10-11 사용자 실행 완료
 - [ ] Play Console 앱 등록 + 내부 테스트 트랙 업로드 (수동, `docs/ops/deploy-guide.md`)
 - [ ] Play App Signing SHA-1 을 Firebase 에 등록 (Google 로그인 동작 확인)
